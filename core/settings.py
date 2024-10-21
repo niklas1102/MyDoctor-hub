@@ -35,6 +35,7 @@ DEBUG = str2bool(os.environ.get('DEBUG'))
 
 # Hosts Settings
 ALLOWED_HOSTS = [
+    'hub.mydoctorem.org',
     'localhost', 
     '127.0.0.1', 
     'mydoctor-hub.herokuapp.com', 

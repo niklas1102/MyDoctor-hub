@@ -25,15 +25,10 @@ from django.views.static import serve
 urlpatterns = [
     path("", include("home.urls")),
     path("admin/", admin.site.urls),
-    path("api/", include("apps.api.urls")),
     path("users/", include("apps.users.urls")),
-    path("charts/", include("apps.charts.urls")),
-    path("tables/", include("apps.tables.urls")),
-    path("tasks/", include("apps.tasks.urls")),
-    path('api/docs/schema', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/'      , SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path("__debug__/", include("debug_toolbar.urls")),
-
+    path('appointments/', include('appointments.urls')),
+    
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}), 
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),     
 ]

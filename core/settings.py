@@ -44,6 +44,13 @@ INTERNAL_IPS = [
 
 # Application definition
 
+
+LOGIN_URL = '/users/signin/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/users/signin/'
+
+
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,13 +59,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "appointments",
+
     "home",
     "apps.common",
     "apps.users",
-    "apps.api",
-    "apps.charts", 
-    "apps.tables",
-    "apps.tasks",
+    
 
     "django_celery_results",
 
@@ -67,7 +73,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_api_gen',
 
-    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -79,7 +84,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    'apps.common.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -89,7 +94,7 @@ UI_TEMPLATES = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [UI_TEMPLATES],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -210,12 +215,17 @@ CELERY_RESULT_SERIALIZER  = 'json'
 LOGIN_REDIRECT_URL = '/'
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', True)
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER',)
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists even after closing browser
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Or any other email service you're using
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Your email address
+EMAIL_HOST_PASSWORD = 'your-email-password'  # App password or email password
+DEFAULT_FROM_EMAIL = 'webmaster@yourdomain.com'
 
 # ### API-GENERATOR Settings ###
 API_GENERATOR = {

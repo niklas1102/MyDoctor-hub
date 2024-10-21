@@ -12,10 +12,13 @@ from django.contrib.auth.hashers import check_password
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.contrib.auth import login
 from apps.users.utils import user_filter
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
+@login_required(login_url='/users/signin/')
 def index(request):
 
     prodName = ''
@@ -26,7 +29,6 @@ def index(request):
     return HttpResponse("INDEX Users" + ' ' + prodName)
 
 
-
 class SignInView(LoginView):
     form_class = SigninForm
     template_name = "authentication/sign-in.html"
@@ -34,7 +36,17 @@ class SignInView(LoginView):
 class SignUpView(CreateView):
     form_class = SignupForm
     template_name = "authentication/sign-up.html"
-    success_url = "/users/signin/"
+    success_url = "/users/signin/"  # Redirect after successful signup
+
+    def form_valid(self, form):
+        user = form.save()  # Save the new user
+        login(self.request, user)  # Log in the user immediately
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        # Print errors in the console for debugging
+        print(form.errors)
+        return super().form_invalid(form)
 
 class UserPasswordChangeView(PasswordChangeView):
     template_name = 'authentication/password-change.html'
@@ -43,10 +55,12 @@ class UserPasswordChangeView(PasswordChangeView):
 class UserPasswordResetView(PasswordResetView):
     template_name = 'authentication/forgot-password.html'
     form_class = UserPasswordResetForm
+    success_url = '/users/password-reset-done/'  # Add success URL
 
 class UserPasswrodResetConfirmView(PasswordResetConfirmView):
     template_name = 'authentication/reset-password.html'
     form_class = UserSetPasswordForm
+    success_url = '/users/password-reset-complete/'  # Add success URL
 
 
 def signout_view(request):
@@ -73,6 +87,7 @@ def profile(request):
     return render(request, 'dashboard/profile.html', context)
 
 
+@login_required(login_url='/users/signin/')
 def upload_avatar(request):
     profile = get_object_or_404(Profile, user=request.user)
     if request.method == 'POST':
@@ -82,6 +97,7 @@ def upload_avatar(request):
     return redirect(request.META.get('HTTP_REFERER'))
 
 
+@login_required(login_url='/users/signin/')
 def change_password(request):
     user = request.user
     if request.method == 'POST':

@@ -7,12 +7,11 @@
 
   {% include "includes/head.html" %}
   {% block extrastyle %}{% endblock extrastyle %}
-
+  <link rel="icon" href="{% static 'dist/img/MY-DOCTOR-fav.png' %}" type="image/x-icon">
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-800">
 
-  {% block messages %}{% endblock messages %}
 
   {% block navigation %}
     {% include "includes/navigation.html" %}
@@ -32,7 +31,7 @@
         {% include "includes/footer.html" %}
       {% endblock footer %}
       <p class="my-10 text-sm text-center text-gray-500">
-        &copy; Flowbite - Coded by <a href="https://appseed.us" class="hover:underline" target="_blank">AppSeed</a>
+        &copy; 2024 - MyDoctor</a>
       </p>
 
     </div>

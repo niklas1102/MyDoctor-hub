@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [
     os.getenv('HEROKU_HOST', 'mydoctor-hub-c052677a5661.herokuapp.com')
 ]
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085', 'https://rocket-django.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://mydoctor-hub.herokuapp.com','https://mydoctor-hub-c052677a5661.herokuapp.com''http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085', 'https://rocket-django.onrender.com']
 
 # Used by DEBUG-Toolbar 
 INTERNAL_IPS = [

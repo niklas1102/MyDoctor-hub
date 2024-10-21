@@ -34,7 +34,7 @@ DEBUG = str2bool(os.environ.get('DEBUG'))
 #print(' DEBUG -> ' + str(DEBUG) ) 
 
 # Hosts Settings
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'https://mydoctor-hub-c052677a5661.herokuapp.com/']
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085', 'https://rocket-django.onrender.com']
 
 # Used by DEBUG-Toolbar 

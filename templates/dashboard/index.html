@@ -1,26 +1,78 @@
 {% extends "layouts/base.html" %}
 {% load static %}
 
-
 {% block content %}
-
 <main>
   <div class="px-4 pt-6">
-    <div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-      <!-- Main widget -->
-      <div
-        class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
- 
-      </div>
-      <!--Tabs widget -->
-
+    <!-- Welcome message -->
+    <div class="mb-6">
+      {% if user.first_name %}
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-white">
+          Welcome, {{ user.first_name }}!
+        </h1>
+      {% else %}
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-white">
+          Welcome, {{ user.username }}!
+        </h1>
+      {% endif %}
+      <p class="text-gray-600 dark:text-gray-400">
+        Manage your appointments, access tools, and update your profile below.
+      </p>
     </div>
 
+    <!-- Navigation cards -->
+    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+      <a href="{% url 'calendar' %}" class="group block">
+        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+          <div class="flex items-center">
+            <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full group-hover:bg-blue-200">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6 2a1 1 0 011 1v1h6V3a1 1 0 112 0v1h1a2 2 0 012 2v1H3V6a2 2 0 012-2h1V3a1 1 0 011-1zM3 9h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Schedule Appointment</p>
+              <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">Book Now</p>
+            </div>
+          </div>
+        </div>
+      </a>
 
 
+      <!-- Chat with Doctor -->
+      <a href="{% url 'chatbot' %}" class="group block">
+        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+          <div class="flex items-center">
+            <div class="p-3 mr-4 text-yellow-500 bg-yellow-100 rounded-full group-hover:bg-yellow-200">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 4V5z"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Chat with Doctor</p>
+              <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">Start Chat</p>
+            </div>
+          </div>
+        </div>
+      </a>
 
-  
+      <!-- My Profile -->
+      <a href="{% url 'index' %}" class="group block">
+        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+          <div class="flex items-center">
+            <div class="p-3 mr-4 text-purple-500 bg-purple-100 rounded-full group-hover:bg-purple-200">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 3a4 4 0 100 8 4 4 0 000-8zM4 13a6 6 0 0112 0v2H4v-2z"></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">My Profile</p>
+              <p class="text-lg font-semibold text-gray-700 dark:text-gray-200">View Profile</p>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
   </div>
 </main>
-
 {% endblock content %}

@@ -1,0 +1,16 @@
+# ...existing code...
+
+TEMPLATES = [
+    {
+        # ...existing code...
+        'OPTIONS': {
+            'context_processors': [
+                # ...existing code...
+                'django.contrib.auth.context_processors.auth',  # Ensure this is included
+                # ...existing code...
+            ],
+        },
+    },
+]
+
+# ...existing code...

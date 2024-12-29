@@ -4,55 +4,21 @@
 {% block content %}
 <main>
   <div class="px-4 pt-6">
-    <div class="relative p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
-      <!-- Loading Spinner -->
-      <div id="spinner" class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800">
-        <div class="loader"></div>
-      </div>
-      <!-- Appointment Booking Iframe -->
-      <iframe 
-        id="calendarIframe"
-        src="https://mydoctorem.simplybook.me/v2/" 
-        width="100%" 
-        height="1000px" 
-        style="border:none; border-radius: 10px;" 
-        scrolling="no" 
-        frameborder="0" 
-        allowfullscreen>
-      </iframe>
-    </div>
+    <h1 class="text-2xl font-bold mb-4">Appointment Calendar</h1>
+    <div id='calendar'></div>
   </div>
 </main>
-{% endblock content %}
 
-{% block extrastyle %}
-<style>
-  /* Spinner Styles */
-  .loader {
-    border: 8px solid #f3f3f3; /* Light grey */
-    border-top: 8px solid #ff9414; /* Orange */
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-</style>
-{% endblock extrastyle %}
-
-{% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var iframe = document.getElementById('calendarIframe');
-    var spinner = document.getElementById('spinner');
+    var calendarEl = document.getElementById('calendar');
 
-    iframe.onload = function() {
-      spinner.style.display = 'none';
-    };
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      events: '/appointments/api/get_appointments/', // URL to fetch events
+    });
+
+    calendar.render();
   });
 </script>
-{% endblock extra_js %}
+{% endblock %}

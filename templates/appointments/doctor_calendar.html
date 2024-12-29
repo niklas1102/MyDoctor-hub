@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <h2 class="text-2xl font-semibold">My Appointment Calendar</h2>
+    <div id='calendar'></div>
+  </div>
+</main>
+
+<!-- Include FullCalendar CSS and JS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      events: [
+        {% for appointment in appointments %}
+        {
+          title: '{{ appointment.patient.username }} - {{ appointment.reason }}',
+          start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+        },
+        {% endfor %}
+      ],
+    });
+
+    calendar.render();
+  });
+</script>
+{% endblock %}

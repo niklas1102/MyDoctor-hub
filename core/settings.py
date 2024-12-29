@@ -55,8 +55,7 @@ INTERNAL_IPS = [
 LOGIN_URL = '/users/signin/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/users/signin/'
-
-
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,10 +67,11 @@ INSTALLED_APPS = [
     "home",
     "apps.common",
     "apps.users",
-    
-
+    'appointments',
+    'crispy_bootstrap4',
+    'crispy_forms', 
+    'crispy_tailwind',
     "django_celery_results",
-
     'rest_framework',
     'rest_framework.authtoken', 
     'drf_spectacular',
@@ -106,6 +106,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.users.context_processors.user_type_context",
             ],
         },
     },

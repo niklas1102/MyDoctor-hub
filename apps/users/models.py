@@ -9,7 +9,12 @@ ROLE_CHOICES = (
     ('user'  , 'User'),
 )
 class Profile(models.Model):
+    USER_TYPE_CHOICES = (
+        ('doctor', 'Doctor'),
+        ('patient', 'Patient'),
+    )
     user      = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='patient')
     role      = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     full_name = models.CharField(max_length=255, null=True, blank=True)
     country   = models.CharField(max_length=255, null=True, blank=True)

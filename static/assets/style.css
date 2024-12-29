@@ -175,3 +175,104 @@
     height: calc(100vh - 4rem);
   }
 }
+
+/* Ensure Cancel button is always visible */
+.bg-red-500 {
+  @apply bg-red-500;
+}
+
+.text-white {
+  @apply text-white;
+}
+
+.px-2 {
+  @apply px-2;
+}
+
+.py-1 {
+  @apply py-1;
+}
+
+.rounded {
+  @apply rounded;
+}
+
+.hover\:bg-red-600:hover {
+  @apply bg-red-600;
+}
+
+.block {
+  @apply block;
+}
+
+/* Remove any styles that might hide elements */
+.hidden {
+  /* display: none; */
+}
+
+.opacity-0 {
+  /* opacity: 0; */
+}
+
+/* Ensure Cancel button is always visible */
+a.bg-red-500 {
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Remove any hover-related hiding */
+a.bg-red-500:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure buttons are visible */
+button,
+a {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Adjust button styles */
+.bg-blue-500 {
+  background-color: #4299e1;
+}
+
+.bg-blue-500:hover {
+  background-color: #3182ce;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+/* Style for "Schedule an Appointment" button */
+a.schedule-appointment-button {
+  display: inline-block;
+  background-color: #4299e1;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+a.schedule-appointment-button:hover {
+  background-color: #3182ce;
+}
+
+/* Style for the cancel appointment button */
+#cancel-appointment-button {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #e60000; /* Bright red color */
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#cancel-appointment-button:hover {
+  background-color: #cc0000; /* Darker red on hover */
+}

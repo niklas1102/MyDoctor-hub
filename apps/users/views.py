@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView, PasswordResetConfirmView
 from django.views.generic import CreateView
 from apps.common.models import Product
-from apps.users.models import Profile
+from apps.users.models import Profile, Document  # Move the import to the top
 from apps.users.forms import SigninForm, SignupForm, UserPasswordChangeForm, UserSetPasswordForm, UserPasswordResetForm, ProfileForm
 from django.contrib.auth import logout
 from django.urls import reverse
@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import login
 from apps.users.utils import user_filter
 from django.contrib.auth.decorators import login_required
+from django.apps import apps
 
 # Create your views here.
 
@@ -71,6 +72,8 @@ def signout_view(request):
 @login_required(login_url='/users/signin/')
 def profile(request):
     profile = get_object_or_404(Profile, user=request.user)
+    documents = Document.objects.filter(user=request.user).order_by('-upload_date')  # Query documents for the logged-in user
+
     if request.method == 'POST':
         form = ProfileForm(request.POST, instance=profile)
 
@@ -83,6 +86,7 @@ def profile(request):
     context = {
         'form': form,
         'segment': 'profile',
+        'documents': documents,  # Pass documents to the template
     }
     return render(request, 'dashboard/profile.html', context)
 
@@ -163,3 +167,29 @@ def user_change_password(request, id):
         user.set_password(request.POST.get('password'))
         user.save()
     return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required(login_url='/users/signin/')
+def upload_document(request):
+    Document = apps.get_model('users', 'Document')  # Dynamically load the Document model
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        doc_type = request.POST.get('doc_type')
+        file = request.FILES.get('file')
+
+        if title and doc_type and file:
+            Document.objects.create(title=title, doc_type=doc_type, file=file, user=request.user)
+            messages.success(request, 'Document uploaded successfully.')
+        else:
+            messages.error(request, 'All fields are required.')
+
+    return redirect('profile')  # Redirect back to the profile page
+
+@login_required(login_url='/users/signin/')
+def delete_document(request, doc_id):
+    document = get_object_or_404(Document, id=doc_id, user=request.user)
+    if request.method == 'POST':
+        document.delete()
+        messages.success(request, 'Document removed successfully.')
+    return redirect('profile')

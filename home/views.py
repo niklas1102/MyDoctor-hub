@@ -21,6 +21,7 @@ def starter(request):
   return render(request, "pages/starter.html", context)
 
 
+
 @login_required(login_url='/users/signin/')
 def chatbot(request):
     context = {
@@ -40,6 +41,13 @@ def calendar_view(request):
     }
     return render(request, 'appointments/calendar.html', context)
 
+@login_required(login_url='/users/signin/')
+def inbox(request):
+    context = {
+        'segment': 'inbox',
+    }
+    return render(request, "dashboard/inbox.html", context)
+
 def get_appointments(request):
     # Example data for appointments (Replace with actual DB data)
     events = [
@@ -57,3 +65,18 @@ def get_appointments(request):
         },
     ]
     return JsonResponse(events, safe=False)
+
+def terms_view(request):
+    return render(request, "pages/terms.html")
+
+def privacy_view(request):
+    return render(request, "pages/privacy.html")
+
+def licensing_view(request):
+    return render(request, "pages/licensing.html")
+
+def cookie_view(request):
+    return render(request, "pages/cookie.html")
+
+def contact_view(request):
+    return render(request, "pages/contact.html")

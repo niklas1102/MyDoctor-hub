@@ -1,0 +1,28 @@
+
+{% extends "layouts/base.html" %}
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <h2 class="text-2xl font-semibold">Inbox</h2>
+    {% if inbox_none %}
+      <p class="mt-4 text-gray-600 dark:text-gray-400">No new items.</p>
+    {% else %}
+      <ul class="mt-4 space-y-2 text-gray-700 dark:text-gray-300">
+        {% for appt in inbox_appointments %}
+          <li>Upcoming with
+            {% if is_doctor %}
+              {{ appt.patient.get_full_name|default:appt.patient.username }}
+            {% else %}
+              {{ appt.doctor.get_full_name|default:appt.doctor.username }}
+            {% endif %}
+            on {{ appt.date|date:"Y-m-d H:i" }}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if is_doctor and today_app_count > 0 %}
+        <p class="mt-2 text-red-600 dark:text-red-400">You have {{ today_app_count }} same-day appointment(s).</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

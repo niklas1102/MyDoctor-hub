@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', 
     'drf_spectacular',
     'django_api_gen',
+    'widget_tweaks',
 
 ]
 
@@ -106,7 +107,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.users.context_processors.user_type_context",
+                "appointments.context_processors.inbox_data",
             ],
         },
     },

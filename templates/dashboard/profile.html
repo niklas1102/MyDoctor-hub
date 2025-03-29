@@ -5,7 +5,7 @@
 
 {% if messages %}
     {% for message in messages %}
-        <div class="flex items-center p-4 text-sm rounded-lg dark:bg-gray-800 {{message.tags}}" role="alert">
+        <div class="flex items-center p-4 text-sm rounded-lg dark:bg-gray-800 {{message.tags}}" role="alert">     
             <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
             </svg>
@@ -26,7 +26,7 @@
             <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
               <li class="inline-flex items-center">
                 <a href="#" class="inline-flex items-center text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white">
-                  <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                  <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>     
                   Home
                 </a>
               </li>
@@ -39,7 +39,7 @@
               <li>
                 <div class="flex items-center">
                   <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
-                  <span class="ml-1 text-gray-400 md:ml-2 dark:text-gray-500" aria-current="page">Settings</span>
+                  <span class="ml-1 text-gray-400 md:ml-2 dark:text-gray-500" aria-current="page">Settings</span> 
                 </div>
               </li>
             </ol>
@@ -89,18 +89,357 @@
 
                 <div class="grid grid-cols-6 gap-6">
                     {% for field in form %}
+                    {% if field.name not in "pre_existing_conditions age gender budget" %}
                     <div class="col-span-6 sm:col-span-3">
                         <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
                         {{ field }}
                     </div>
+                    {% endif %}
                     {% endfor %}
                     <div class="col-span-6 sm:col-full">
                         <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800" type="submit">Save all</button>
                     </div>
                 </div>
-                
+
             </form>
         </div>
+        {% if is_patient %}
+<div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+    <h3 class="mb-4 text-xl font-semibold dark:text-white">Medical Information</h3>
+    <div class="grid grid-cols-6 gap-6">
+        <!-- Autocomplete for pre_existing_conditions -->
+        <div class="col-span-6 sm:col-span-3 relative">
+            <label for="pre_existing_conditions" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ form.pre_existing_conditions.label }}
+            </label>
+            <input type="text" id="pre_existing_conditions" name="pre_existing_conditions"
+                   class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                   placeholder="Type condition..." />
+            <ul id="condition-suggestions"
+                class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow hidden dark:border-gray-600 dark:bg-gray-700">
+                <!-- Filtered suggestions appear here -->
+            </ul>
+            <div id="selected-conditions" class="mt-4 flex flex-wrap gap-2"></div>
+            <input type="hidden" name="pre_existing_conditions" id="pre_existing_conditions_field" />
+        </div>
+        <!-- Age -->
+        <div class="col-span-6 sm:col-span-3">
+            {{ form.age.label_tag }}
+            {{ form.age }}
+        </div>
+        <!-- Gender -->
+        <div class="col-span-6 sm:col-span-3">
+            {{ form.gender.label_tag }}
+            {{ form.gender }}
+        </div>
+        <!-- Range slider for budget -->
+        <div class="col-span-6 sm:col-span-3">
+            <label for="budgetRange" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">        
+                {{ form.budget.label }}
+            </label>
+            <input type="range" id="budgetRange" min="0" max="4" step="1" value="2"
+                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />   
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Selected: <span id="budgetValue">Medium</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="mb-6">
+    <!-- Tab Navigation -->
+    <nav class="flex flex-wrap sm:flex-nowrap border-b border-gray-200 dark:border-gray-700">
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-records">Medical Records</button>
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-labs">Lab Results</button>
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-medications">Medications</button>
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-visits">Past Visits</button>
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-immunizations">Immunizations</button>
+        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-documents">Documents</button>
+    </nav>
+</div>
+
+<!-- Tab Content -->
+<div id="tab-records" class="tab-content">
+    <!-- Medical Records Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Medical Records</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Summary</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Download</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if medical_records %}
+                        {% for record in medical_records %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ record.date }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ record.record_type }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ record.summary }}</td>
+                            <td class="px-6 py-4 text-sm text-blue-600 dark:text-blue-400">
+                                <a href="{{ record.file.url }}" class="hover:underline" target="_blank">Download</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No records available</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-labs" class="tab-content hidden">
+    <!-- Lab Results Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Lab Results</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Test Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Report</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if lab_results %}
+                        {% for result in lab_results %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ result.date }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ result.test_type }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ result.status }}</td>
+                            <td class="px-6 py-4 text-sm text-blue-600 dark:text-blue-400">
+                                <a href="{{ result.report_url }}" class="hover:underline" target="_blank">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No lab results found</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-medications" class="tab-content hidden">
+    <!-- Medications Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Current Medications</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Medication Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Dosage</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Start Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Prescribing Doctor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Instructions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if medications %}
+                        {% for med in medications %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.dosage }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.start_date }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.prescribed_by }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.instructions }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">You are not currently taking any medications</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-visits" class="tab-content hidden">
+    <!-- Past Visits Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Past Visits</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Doctor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Reason for Visit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Summary</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if past_visits %}
+                        {% for visit in past_visits %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.date }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.doctor_name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.reason }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.summary }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No past visits recorded</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-immunizations" class="tab-content hidden">
+    <!-- Immunizations Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Immunizations</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Vaccine</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Dose</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if immunizations %}
+                        {% for imm in immunizations %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ imm.vaccine_name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ imm.date_administered }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ imm.dose }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ imm.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No immunization records found</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-documents" class="tab-content hidden">
+    <!-- Documents Section -->
+    <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold dark:text-white">Uploaded Documents</h3>
+        <form method="post" action="{% url 'upload_document' %}" enctype="multipart/form-data" class="mb-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                    <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+                    <input type="text" id="title" name="title" class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter document title" required>
+                </div>
+                <div>
+                    <label for="doc_type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Document Type</label>
+                    <select id="doc_type" name="doc_type" class="block w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <option value="Lab Report">Lab Report</option>
+                        <option value="Prescription">Prescription</option>
+                        <option value="Referral">Referral</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="file" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">File</label>
+                    <input type="file" id="file" name="file" class="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-700 rounded-lg hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Upload Document</button>
+            </div>
+        </form>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Title</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Upload Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">File</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    {% if documents.exists %}
+                        {% for doc in documents %}
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ doc.title }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ doc.doc_type }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ doc.upload_date }}</td>
+                            <td class="px-6 py-4 text-sm text-blue-600 dark:text-blue-400">
+                                <a href="{{ doc.file.url }}" class="hover:underline" target="_blank">Download</a>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-red-600 dark:text-red-400">
+                                <button onclick="confirmDelete({{ doc.id }})" class="hover:underline" title="Remove">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No documents uploaded yet</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800">
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirm Deletion</h3>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Are you sure you want to remove this document? This action cannot be undone.</p>
+                </div>
+                <div class="flex justify-end p-4 space-x-2">
+                    <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</button>
+                    <form id="deleteForm" method="post" action="">
+                        {% csrf_token %}
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function confirmDelete(docId) {
+                const modal = document.getElementById('deleteModal');
+                const form = document.getElementById('deleteForm');
+                form.action = `/users/delete-document/${docId}/`;
+                modal.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                const modal = document.getElementById('deleteModal');
+                modal.classList.add('hidden');
+            }
+        </script>
+    </div>
+</div>
+{% endif %}
         <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
             <h3 class="mb-4 text-xl font-semibold dark:text-white">Password information</h3>
             <form method="post" action="{% url "change_password" %}">
@@ -115,7 +454,7 @@
                                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
                                     <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                                       <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                                      <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+                                      <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>   
                                     </g>
                                 </svg>
                             </button>
@@ -126,10 +465,10 @@
                         <div class="relative w-full">
                             <input type="password" id="new_password" name="new_password" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border-l-gray-100 border-l-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="New password" required>
                             <button type="button" id="show_new_password" class="absolute top-0 right-0 p-2.5 h-full text-sm font-thin text-white rounded-r-lg">
-                                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14"></svg>
+                                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></g>
                                       <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                                      <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
+                                      <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>   
                                     </g>
                                 </svg>
                             </button>
@@ -142,7 +481,7 @@
             </form>
         </div>
     </div>
-    
+
 </div>
 
 {% endblock content %}
@@ -178,7 +517,7 @@
             if (type === 'password') {
                 eyeIcon.innerHTML = `
                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">     
                       <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
                       <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
                     </g>
@@ -195,5 +534,120 @@
     });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ---------------------------------------------
+    // Autocomplete for pre_existing_conditions
+    // --------------------------------------------- 
+    const conditions = [
+      "Diabetes", "Dyslexia", "Dysthymia", "Diphtheria",
+      "Asthma", "Cancer", "Heart Disease", "Hypertension"
+      // ...add as many as needed...
+    ];
+    const input = document.getElementById('pre_existing_conditions');
+    const suggestionBox = document.getElementById('condition-suggestions');
+
+    input.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        // Filter the conditions
+        const filtered = conditions.filter(cond => cond.toLowerCase().startsWith(query));
+        // Clear and populate the suggestion box
+        suggestionBox.innerHTML = '';
+        filtered.forEach(cond => {
+            const li = document.createElement('li');
+            li.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer';
+            li.textContent = cond;
+            li.onclick = () => {
+                input.value = cond;
+                suggestionBox.classList.add('hidden');
+            };
+            suggestionBox.appendChild(li);
+        });
+        suggestionBox.classList.toggle('hidden', filtered.length === 0 || !query);
+    });
+
+    // Click anywhere else to hide suggestions
+    document.addEventListener('click', function(e) {
+        if(!suggestionBox.contains(e.target) && e.target !== input) {
+            suggestionBox.classList.add('hidden');
+        }
+    });
+
+    // Store selected conditions in an array and render them
+    let selectedConditions = [];
+    const selectedContainer = document.getElementById('selected-conditions');
+    const hiddenField = document.getElementById('pre_existing_conditions_field');
+
+    function renderSelectedConditions() {
+        selectedContainer.innerHTML = '';
+        selectedConditions.forEach(cond => {
+            const chip = document.createElement('div');
+            chip.className = 'inline-flex items-center px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-700';
+            chip.innerHTML = cond + ' &nbsp;<button type="button" class="ml-1 text-red-500 font-bold">x</button>';
+            chip.querySelector('button').onclick = () => {
+                selectedConditions = selectedConditions.filter(c => c !== cond);
+                renderSelectedConditions();
+            };
+            selectedContainer.appendChild(chip);
+        });
+        hiddenField.value = selectedConditions.join(',');
+    }
+
+    // Modify your existing li.onclick to add the selected condition
+    // instead of just populating the input field.
+    suggestionBox.addEventListener('click', function(e) {
+        if (e.target && e.target.tagName === 'LI') {
+            const cond = e.target.textContent;
+            if(!selectedConditions.includes(cond)) {
+                selectedConditions.push(cond);
+                renderSelectedConditions();
+            }
+            input.value = '';
+            suggestionBox.classList.add('hidden');
+        }
+    });
+
+    // ---------------------------------------------
+    // Range slider for budget
+    // --------------------------------------------- 
+    const budgetRange = document.getElementById('budgetRange');
+    const budgetValue = document.getElementById('budgetValue');
+    const levels = ["Low", "Mid Low", "Medium", "Mid High", "High"];
+
+    function updateBudgetLabel(val) {
+        budgetValue.textContent = levels[val];
+    }
+    budgetRange.addEventListener('input', function() {
+        updateBudgetLabel(this.value);
+    });
+    updateBudgetLabel(budgetRange.value);
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Remove active styles from all tabs
+                tabs.forEach(t => t.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600', 'font-bold'));
+                // Hide all content
+                contents.forEach(content => content.classList.add('hidden'));
+
+                // Add active styles to clicked tab
+                this.classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'font-bold');
+                // Show corresponding content
+                const target = document.getElementById(this.getAttribute('data-tab'));
+                target.classList.remove('hidden');
+            });
+        });
+
+        // Set the first tab as active by default
+        tabs[0].classList.add('text-blue-600', 'border-b-2', 'border-blue-600', 'font-bold');
+        contents[0].classList.remove('hidden');
+    });
+</script>
 
 {% endblock extra_js %}

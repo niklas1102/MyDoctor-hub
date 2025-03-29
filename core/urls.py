@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from django.views.static import serve 
+from home import views
 
 urlpatterns = [
     path("", include("home.urls")),
@@ -30,6 +31,11 @@ urlpatterns = [
     
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}), 
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),     
+    path('terms/', views.terms_view, name='terms'),
+    path('privacy/', views.privacy_view, name='privacy'),
+    path('licensing/', views.licensing_view, name='licensing'),
+    path('cookie/', views.cookie_view, name='cookie'),
+    path('contact/', views.contact_view, name='contact'),
 ]
 
 urlpatterns += static(settings.CELERY_LOGS_URL, document_root=settings.CELERY_LOGS_DIR)

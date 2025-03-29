@@ -72,10 +72,15 @@ class UserPasswordChangeForm(PasswordChangeForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        exclude = ('user', 'role', 'avatar',)
+        exclude = ('user', 'role', 'avatar', 'user_type',)
 
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
+        if self.instance.user.groups.filter(name='Doctor').exists():
+            self.fields.pop('pre_existing_conditions', None)
+            self.fields.pop('age', None)
+            self.fields.pop('gender', None)
+            self.fields.pop('budget', None)
 
         for field_name, field in self.fields.items():
             self.fields[field_name].widget.attrs['placeholder'] = field.label

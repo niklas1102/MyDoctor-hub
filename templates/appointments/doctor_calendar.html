@@ -1,11 +1,58 @@
 {% extends "layouts/base.html" %}
 {% load static %}
 
+<style>
+  .calendar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  /* Enhance toolbar layout & button styling */
+  .fc-header-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .fc .fc-button {
+    border-radius: 4px;
+    margin: 0 0.25rem;
+    background-color: #3490dc;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.8rem;
+  }
+  .fc .fc-button:hover {
+    background-color: #2779bd;
+  }
+  .fc-timegrid-now-indicator-arrow, .fc-timegrid-now-indicator-line {
+    background-color: red !important;
+    border-color: red !important;
+  }
+  .fc .fc-list-now-indicator-line {
+    background-color: red !important;
+  }
+</style>
+
 {% block content %}
 <main>
   <div class="px-4 pt-6">
     <h2 class="text-2xl font-semibold">My Appointment Calendar</h2>
-    <div id='calendar'></div>
+    <div id="calendar" class="calendar-container"></div>
+  </div>
+  <!-- Hidden modal for appointment details -->
+  <div id="appointmentPopup" class="hidden fixed z-10 inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <h3 class="text-lg font-semibold mb-4">Appointment Details</h3>
+      <p><strong>Patient Name:</strong> <span id="popupPatientName"></span></p>
+      <p><strong>Conditions:</strong> <span id="popupConditions"></span></p>
+      <!-- Add other fields as needed -->
+      <button onclick="document.getElementById('appointmentPopup').classList.add('hidden')" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Close</button>
+    </div>
   </div>
 </main>
 
@@ -18,15 +65,33 @@
     var calendarEl = document.getElementById('calendar');
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
+      initialView: 'timeGridWeek',
+      nowIndicator: true,
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,listWeek'
+      },
+      themeSystem: 'standard',
       events: [
         {% for appointment in appointments %}
         {
           title: '{{ appointment.patient.username }} - {{ appointment.reason }}',
           start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+          extendedProps: {
+            patientName: '{{ appointment.patient.profile.full_name|default:appointment.patient.username }}',
+            conditions: '{{ appointment.patient.profile.pre_existing_conditions|default:"No data" }}',
+            // ...add other needed patient fields...
+          }
         },
         {% endfor %}
       ],
+      eventClick: function(info) {
+        document.getElementById('popupPatientName').textContent = info.event.extendedProps.patientName;
+        document.getElementById('popupConditions').textContent = info.event.extendedProps.conditions;
+        // ...fill other fields...
+        document.getElementById('appointmentPopup').classList.remove('hidden');
+      },
     });
 
     calendar.render();

@@ -21,7 +21,7 @@ class Appointment(models.Model):
         on_delete=models.CASCADE
     )
     date = models.DateTimeField()
-    reason = models.CharField(max_length=255)
+    reason = models.CharField(max_length=255, default='No reason provided')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # Add this line
     created_at = models.DateTimeField(auto_now_add=True)
 

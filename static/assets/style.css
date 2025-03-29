@@ -177,34 +177,40 @@
 }
 
 /* Ensure Cancel button is always visible */
-.bg-red-500 {
+/* .bg-red-500 {
   @apply bg-red-500;
-}
+} */
 
-.text-white {
+/* .text-white {
   @apply text-white;
+} */
+/* Removed circular dependency for text-white */
+.text-white {
+  color: #ffffff; /* Directly applied the color without using @apply */
 }
 
-.px-2 {
-  @apply px-2;
+/* Removed circular dependency for bg-red-500 */
+.bg-red-500 {
+  background-color: #ef4444; /* Directly applied the color */
 }
 
-.py-1 {
-  @apply py-1;
+/* Removed redundant @apply usage for Cancel button styles */
+a.bg-red-500 {
+  background-color: #ef4444; /* Tailwind's bg-red-500 */
+  color: #ffffff; /* Ensures text is white */
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-.rounded {
-  @apply rounded;
+a.bg-red-500:hover {
+  background-color: #dc2626; /* Tailwind's bg-red-600 equivalent */
 }
 
+/* Fixed hover:bg-red-600 */
 .hover\:bg-red-600:hover {
-  @apply bg-red-600;
+  background-color: #dc2626; /* Directly applied Tailwind's bg-red-600 color */
 }
-
-.block {
-  @apply block;
-}
-
 /* Remove any styles that might hide elements */
 .hidden {
   /* display: none; */

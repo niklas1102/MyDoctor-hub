@@ -178,11 +178,11 @@ def upload_document(request):
         doc_type = request.POST.get('doc_type')
         file = request.FILES.get('file')
 
-        if title and doc_type and file:
+        if title and doc_type and file:  # Ensure a file is provided
             Document.objects.create(title=title, doc_type=doc_type, file=file, user=request.user)
             messages.success(request, 'Document uploaded successfully.')
         else:
-            messages.error(request, 'All fields are required.')
+            messages.error(request, 'All fields, including the file, are required.')
 
     return redirect('profile')  # Redirect back to the profile page
 

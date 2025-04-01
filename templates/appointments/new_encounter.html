@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <h2 class="text-2xl font-semibold text-center">Start a New Encounter</h2>
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="mt-6 flex justify-center">
+        <input 
+          type="text" 
+          id="patient-search" 
+          placeholder="Search by name or ID..." 
+          class="w-full max-w-md p-3 rounded-lg border border-gray-300 shadow-sm"
+        />
+        <ul id="patient-results" class="absolute bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-w-md hidden">
+          <!-- Search results will be dynamically populated here -->
+        </ul>
+        <select 
+          name="patient_id" 
+          id="patient-select" 
+          class="w-full max-w-md p-3 rounded-lg border border-gray-300 shadow-sm mt-4"
+          required
+        >
+          <option value="" disabled selected>Select a patient</option>
+          {% for patient in patients %}
+          <option value="{{ patient.id }}">{{ patient.get_full_name|default:patient.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mt-6 flex justify-center">
+        <button 
+          type="submit" 
+          class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+        >
+          Start Encounter
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+document.getElementById('patient-search').addEventListener('input', function () {
+    const query = this.value.trim();
+    const resultsContainer = document.getElementById('patient-results');
+    const selectElement = document.getElementById('patient-select');
+
+    if (query.length > 0) {
+        fetch(`/appointments/doctor/search-patients/?query=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsContainer.innerHTML = '';
+                if (data.length > 0) {
+                    resultsContainer.classList.remove('hidden');
+                    data.forEach(patient => {
+                        const li = document.createElement('li');
+                        li.textContent = `${patient.first_name} ${patient.last_name} (ID: ${patient.id})`;
+                        li.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+                        li.addEventListener('click', () => {
+                            selectElement.innerHTML = `<option value="${patient.id}" selected>${patient.first_name} ${patient.last_name} (ID: ${patient.id})</option>`;
+                            resultsContainer.classList.add('hidden');
+                        });
+                        resultsContainer.appendChild(li);
+                    });
+                } else {
+                    resultsContainer.classList.add('hidden');
+                }
+            });
+    } else {
+        resultsContainer.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

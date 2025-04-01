@@ -1,0 +1,181 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <h2 class="text-2xl font-semibold">Patient Overview</h2>
+    <div class="mt-6 bg-white p-6 rounded-lg shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h3 class="text-xl font-bold text-gray-900">{{ patient.get_full_name|default:patient.username }}</h3>
+        <p class="text-sm text-gray-500">Age: {{ patient.profile.age|default:"N/A" }}</p>
+        <p class="text-sm text-gray-500">Gender: {{ patient.profile.gender|default:"N/A" }}</p>
+        <p class="text-sm text-gray-500">Date of Birth: {{ patient.profile.date_of_birth|default:"N/A" }}</p>
+        <p class="text-sm text-gray-500">Patient ID: {{ patient.id }}</p>
+      </div>
+      <div>
+        <img 
+          src="{{ patient.profile.picture.url|default:'/static/default-profile.png' }}" 
+          alt="Profile Picture" 
+          class="w-24 h-24 rounded-full object-cover"
+        />
+      </div>
+    </div>
+
+    <!-- Start New Visit Section -->
+    <div class="mt-8">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold">Start New Visit</h3>
+        <button 
+          class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+          onclick="window.location.href='{% url 'appointments:doctor_encounter_view' encounter_id=0 %}?patient_id={{ patient.id }}'"
+        >
+          Create Encounter
+        </button>
+      </div>
+      <!-- Placeholder for visit content -->
+      <div class="mt-6 bg-gray-50 p-4 rounded-lg shadow">
+        <p class="text-gray-500">Visit content will be displayed here.</p>
+      </div>
+    </div>
+
+    <!-- Health Summary Section -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow mb-6">
+      <h3 class="text-lg font-semibold mb-4">Health Summary</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-500">Current Conditions</p>
+          <ul class="list-disc list-inside text-gray-900 font-medium">
+            {% for condition in health_summary.conditions|slice:":3" %}
+              <li>{{ condition }}</li>
+            {% empty %}
+              <li>No active conditions</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Active Medications</p>
+          <ul class="list-disc list-inside text-gray-900 font-medium">
+            {% for medication in health_summary.medications|slice:":3" %}
+              <li>{{ medication }}</li>
+            {% empty %}
+              <li>No active medications</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Last Immunization Date</p>
+          <p class="text-gray-900 font-medium">
+            {{ health_summary.last_immunization_date|default:"N/A" }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Completed Visits</p>
+          <p class="text-gray-900 font-medium">
+            {{ health_summary.completed_visits }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Results Section -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow mb-6">
+      <h3 class="text-lg font-semibold mb-4">Lab Results</h3>
+      <ul class="list-disc list-inside">
+        {% for lab in patient.lab_results.all %}
+        <li>
+          {{ lab.test_type }} - {{ lab.status }} ({{ lab.date|date:"Y-m-d" }})
+          {% if lab.file %}
+          <a 
+            href="{{ lab.file.url }}" 
+            class="text-blue-600 hover:underline ml-2" 
+            target="_blank"
+          >
+            Download
+          </a>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="text-gray-500">No lab results available</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Uploaded Documents Section -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow mb-6">
+      <h3 class="text-lg font-semibold mb-4">Uploaded Documents</h3>
+      <ul class="list-disc list-inside">
+        {% for doc in patient.documents.all %}
+        <li>
+          {{ doc.title }} - {{ doc.doc_type }} ({{ doc.upload_date|date:"Y-m-d" }})
+          {% if doc.file %}
+          <a 
+            href="{{ doc.file.url }}" 
+            class="text-blue-600 hover:underline ml-2" 
+            target="_blank"
+          >
+            Download
+          </a>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="text-gray-500">No documents uploaded</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Visit History Section -->
+    <div class="mt-8">
+      <h3 class="text-lg font-semibold mb-4">Visit History</h3>
+      <div>
+        {% for encounter in encounters %}
+        <div 
+          class="bg-white p-4 rounded-lg shadow mb-3 hover:bg-gray-50 cursor-pointer"
+          onclick="window.location.href='{% url 'appointments:doctor_encounter_view' encounter.id %}'"
+        >
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-medium text-gray-900">Visit Date: {{ encounter.date|date:"Y-m-d" }}</p>
+              <p class="text-sm text-gray-500">Doctor: {{ encounter.doctor.get_full_name|default:"N/A" }}</p>
+            </div>
+            <span 
+              class="text-sm px-3 py-1 rounded-full {% if encounter.status == 'Closed' %}bg-gray-200 text-gray-600{% else %}bg-green-100 text-green-800{% endif %}"
+            >
+              {{ encounter.status }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Timeline of Care Section -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow">
+      <h3 class="text-lg font-semibold mb-4">Timeline of Care</h3>
+      <div class="border-l-2 border-gray-300 pl-4">
+        {% for event in timeline %}
+        <div class="mb-6">
+          <div class="flex items-center space-x-4">
+            <p class="text-sm text-gray-500">{{ event.date|date:"F j, Y" }}</p>
+            <span 
+              class="text-xs px-3 py-1 rounded-full {% if event.type == 'Visit' %}bg-blue-100 text-blue-800{% elif event.type == 'Lab Result' %}bg-green-100 text-green-800{% elif event.type == 'Prescription' %}bg-purple-100 text-purple-800{% elif event.type == 'Upload' %}bg-yellow-100 text-yellow-800{% endif %}"
+            >
+              {{ event.type }}
+            </span>
+          </div>
+          <p class="mt-2 text-gray-900 font-medium">{{ event.description }}</p>
+          {% if event.link %}
+          <a 
+            href="{{ event.link }}" 
+            class="text-sm text-blue-600 hover:underline mt-2 inline-block"
+          >
+            View Details
+          </a>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-500">No events recorded in the timeline.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

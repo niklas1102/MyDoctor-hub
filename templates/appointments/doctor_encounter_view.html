@@ -1,0 +1,914 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<main>
+    <div class="px-4 pt-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-semibold">Encounter Details</h2>
+            <span 
+                class="text-sm px-3 py-1 rounded-full {% if encounter.status == 'Closed' %}bg-gray-200 text-gray-600{% else %}bg-green-100 text-green-800{% endif %}"
+            >
+                {{ encounter.status }}
+            </span>
+        </div>
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Tab Navigation -->
+            <div class="bg-white p-4 rounded-lg shadow lg:col-span-1">
+                <nav class="space-y-2">
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100 font-semibold text-blue-700 bg-blue-50"
+                        data-tab="tab-conversation"
+                    >
+                        Conversation
+                    </button>
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+                        data-tab="tab-diagnoses"
+                    >
+                        Diagnoses
+                    </button>
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+                        data-tab="tab-medications"
+                    >
+                        Medications
+                    </button>
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+                        data-tab="tab-lab-results"
+                    >
+                        Lab Results
+                    </button>
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+                        data-tab="tab-immunizations"
+                    >
+                        Immunizations
+                    </button>
+                    <button 
+                        class="tab-button w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+                        data-tab="tab-uploads"
+                    >
+                        Uploads
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Right Column: Tab Content -->
+            <div class="bg-white p-6 rounded-lg shadow lg:col-span-2">
+                <!-- For a closed encounter, display data in read-only mode -->
+                {% if encounter.status == "Closed" %}
+                <div>
+                    <h3 class="text-lg font-semibold">Encounter Information</h3>
+                    <p class="mt-2 text-gray-600">Notes: {{ encounter.notes|default:"No notes" }}</p>
+                    <!-- Diagnoses -->
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold">Diagnoses</h4>
+                        <ul class="list-disc list-inside">
+                            {% for diag in diagnoses %}
+                            <li>{{ diag.description }}</li>
+                            {% empty %}
+                            <li class="text-gray-500">No diagnoses recorded</li>
+                            {% endfor %}
+                        </ul>  
+                    </div>
+                    <!-- Medications -->
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold">Medications</h4>
+                        <ul class="list-disc list-inside">
+                            {% for med in medications %}
+                            <li>{{ med.name }} - {{ med.dosage }} ({{ med.duration }})</li>
+                            {% empty %}
+                            <li class="text-gray-500">No medications recorded</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Immunizations -->
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold">Immunizations</h4>
+                        <ul class="list-disc list-inside">
+                            {% for imm in immunizations %}
+                            <li>{{ imm.name }} on {{ imm.date }} ({{ imm.status }})</li>
+                            {% empty %}
+                            <li class="text-gray-500">No immunizations recorded</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Lab Results -->
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold">Lab Results</h4>
+                        <ul class="list-disc list-inside">
+                            {% for lab in lab_results %}
+                            <li>
+                                {{ lab.test_type }} - {{ lab.status }} ({{ lab.date|date:"Y-m-d" }})
+                                {% if lab.file %}
+                                <a 
+                                    href="{{ lab.file.url }}" 
+                                    class="text-blue-600 hover:underline ml-2" 
+                                    target="_blank"
+                                >
+                                    Download
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% empty %}
+                            <li class="text-gray-500">No lab results available</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Documents -->
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold">Uploaded Documents</h4>
+                        <ul class="list-disc list-inside">
+                            {% for doc in documents %}
+                            <li>
+                                {{ doc.title }} - {{ doc.doc_type }} ({{ doc.upload_date|date:"Y-m-d" }})
+                                {% if doc.file %}
+                                <a 
+                                    href="{{ doc.file.url }}" 
+                                    class="text-blue-600 hover:underline ml-2" 
+                                    target="_blank"
+                                >
+                                    Download
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% empty %}
+                            <li class="text-gray-500">No documents uploaded</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Visit Summary Section -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow mt-6">
+                        <h4 class="text-lg font-semibold">Visit Summary</h4>
+                        <p class="mt-2 text-gray-700 text-sm">
+                            {{ encounter.visit_summary|default:"No visit summary available." }}
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Editable content for active encounters -->
+                <div id="tab-conversation" class="tab-content">
+                    <h3 class="text-lg font-semibold">Conversation</h3>
+                    <div class="bg-white p-6 rounded-lg shadow mt-4">
+                        <h4 class="text-lg font-semibold">Visit Notes</h4>
+                        <form method="post" action="">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_notes" value="true">
+                            <textarea
+                                name="notes"
+                                class="w-full h-40 p-3 border border-gray-300 rounded-md resize-none focus:ring focus:ring-blue-200 mt-4"
+                                placeholder="Write your observations here..."
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            >{{ encounter.notes|default_if_none:"" }}</textarea>
+                            {% if encounter.status != 'Closed' %}
+                            <button
+                                type="submit"
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-4 dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                            >
+                                Save Notes
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+                <div id="tab-diagnoses" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold">Add Diagnosis</h3>
+                    <div class="bg-white p-6 rounded-lg shadow mt-4">
+                        <form id="diagnosis-form" onsubmit="addDiagnosis(event)">
+                            <input 
+                                type="text" 
+                                id="diagnosis-input" 
+                                placeholder="Type diagnosis..." 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-4"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <button 
+                                type="submit" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                {% if encounter.status == 'Closed' %}hidden{% endif %}
+                            >
+                                Add Diagnosis
+                            </button>
+                        </form>
+                        <div id="diagnosis-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Diagnoses will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-medications" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold">Prescribe Medication</h3>
+                    <div class="bg-white p-6 rounded-lg shadow mt-4">
+                        <form id="medication-form" onsubmit="addMedication(event)">
+                            <input 
+                                type="text" 
+                                id="medication-name" 
+                                placeholder="e.g. Amoxicillin" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <input 
+                                type="text" 
+                                id="medication-dosage" 
+                                placeholder="e.g. 500mg twice daily" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <input 
+                                type="text" 
+                                id="medication-duration" 
+                                placeholder="e.g. 7 days" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <button 
+                                type="submit" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                {% if encounter.status == 'Closed' %}hidden{% endif %}
+                            >
+                                Prescribe
+                            </button>
+                        </form>
+                        <div id="medication-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Medications will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-lab-results" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold mb-4">Lab Results</h3>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <form id="lab-result-form" onsubmit="addLabResult(event)">
+                            <input 
+                                type="text" 
+                                id="lab-test-type" 
+                                placeholder="e.g. Blood Test" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <input 
+                                type="file" 
+                                id="lab-file" 
+                                accept=".pdf,.jpg,.png" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <select 
+                                id="lab-status" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            >
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                            <button 
+                                type="submit" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                {% if encounter.status == 'Closed' %}hidden{% endif %}
+                            >
+                                Upload Lab Result
+                            </button>
+                        </form>
+                        <div id="lab-result-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Lab results will be dynamically added here -->
+                        </div>
+                        <ul class="list-disc list-inside">
+                            {% for lab in lab_results %}
+                            <li>
+                                {{ lab.test_type }} - {{ lab.status }} ({{ lab.date|date:"Y-m-d" }})
+                                {% if lab.file %}
+                                <a 
+                                    href="{{ lab.file.url }}" 
+                                    class="text-blue-600 hover:underline ml-2" 
+                                    target="_blank"
+                                >
+                                    Download
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% empty %}
+                            <li class="text-gray-500">No lab results available</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div id="tab-immunizations" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold mb-4">Record Immunization</h3>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <form id="immunization-form" onsubmit="addImmunization(event)">
+                            <input 
+                                type="text" 
+                                id="immunization-name" 
+                                placeholder="e.g. Yellow Fever" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <input 
+                                type="date" 
+                                id="immunization-date" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <input 
+                                type="text" 
+                                id="immunization-dose" 
+                                placeholder="e.g. First Dose" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <select 
+                                id="immunization-status" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            >
+                                <option value="Completed">Completed</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Missed">Missed</option>
+                            </select>
+                            <button 
+                                type="submit" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                {% if encounter.status == 'Closed' %}hidden{% endif %}
+                            >
+                                Add Immunization
+                            </button>
+                        </form>
+                        <div id="immunization-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Immunizations will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-uploads" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold mb-4">Uploaded Documents</h3>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <form id="upload-document-form" onsubmit="addDocument(event)">
+                            <input 
+                                type="text" 
+                                id="document-title" 
+                                placeholder="e.g. Referral Letter" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <select 
+                                id="document-type" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            >
+                                <option value="Referral">Referral</option>
+                                <option value="Scan">Scan</option>
+                                <option value="External Report">External Report</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <input 
+                                type="file" 
+                                id="document-file" 
+                                accept=".pdf,.jpg,.png" 
+                                class="w-full p-3 border border-gray-300 rounded-md mb-3"
+                                {% if encounter.status == 'Closed' %}disabled{% endif %}
+                            />
+                            <button 
+                                type="submit" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                {% if encounter.status == 'Closed' %}hidden{% endif %}
+                            >
+                                Upload Document
+                            </button>
+                        </form>
+                        <div id="document-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Documents will be dynamically added here -->
+                        </div>
+                        <ul class="list-disc list-inside">
+                            {% for doc in documents %}
+                            <li>
+                                {{ doc.title }} - {{ doc.doc_type }} ({{ doc.upload_date|date:"Y-m-d" }})
+                                {% if doc.file %}
+                                <a 
+                                    href="{{ doc.file.url }}" 
+                                    class="text-blue-600 hover:underline ml-2" 
+                                    target="_blank"
+                                >
+                                    Download
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% empty %}
+                            <li class="text-gray-500">No documents uploaded</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <!-- Finalize Visit Section -->
+                <div class="bg-white p-6 rounded-lg shadow mt-6">
+                    <h3 class="text-lg font-semibold">Finalize Visit</h3>
+                    <p class="mt-2 text-sm text-gray-500">When you’re done, close this visit to finalize records and lock edits.</p>
+                    <form method="post" action="" onsubmit="prepareDataBeforeSubmit()">
+                        {% csrf_token %}
+                        <input type="hidden" name="end_visit" value="true">
+                        <!-- Add notes textarea -->
+                        <div class="mt-4">
+                            <label for="notes" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Visit Notes</label>
+                            <textarea
+                                name="notes"
+                                id="notes"
+                                class="w-full h-40 p-3 border border-gray-300 rounded-md resize-none focus:ring focus:ring-blue-200"
+                                placeholder="Write your observations here..."
+                            >{{ encounter.notes|default_if_none:"" }}</textarea>
+                        </div>
+                        <!-- Hidden fields for diagnoses, medications, immunizations, etc. -->
+                        <input type="hidden" id="diagnoses-hidden" name="diagnoses_data" />
+                        <input type="hidden" id="medications-hidden" name="medications_data" />
+                        <input type="hidden" id="immunizations-hidden" name="immunizations_data" />
+                        <input type="hidden" id="labresults-hidden" name="labresults_data" />
+                        <input type="hidden" id="documents-hidden" name="documents_data" />
+                        <div class="flex justify-end mt-4">
+                            <button 
+                                id="end-visit-button" 
+                                class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                                type="submit"
+                            >
+                                End Visit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Visit Summary Panel -->
+                <div class="bg-white p-6 rounded-lg shadow mt-6">
+                    <h3 class="text-lg font-semibold">Visit Summary</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-2 mt-4">
+                        <ul id="visit-summary-list" class="list-disc list-inside text-sm text-gray-900">
+                            <!-- Visit summary items will be dynamically added here -->
+                        </ul>
+                        <textarea 
+                            id="visit-summary-text" 
+                            name="visit_summary" 
+                            class="hidden"
+                        ></textarea>
+                    </div>
+                </div>
+                <!-- Confirmation Modal -->
+                <div id="endVisitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirm End Visit</h3>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Are you sure you want to end this visit? This action will finalize records and lock all edits.</p>
+                        </div>
+                        <div class="flex justify-end p-4 space-x-2">
+                            <button 
+                                onclick="closeEndVisitModal()" 
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                id="confirm-end-visit-button" 
+                                onclick="finalizeVisit()" 
+                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div> 
+        </div> 
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const encounterStatus = "{{ encounter.status }}";
+    if (encounterStatus === "Closed") {
+        // Disable all inputs and hide action buttons
+        document.querySelectorAll('input, textarea, select, button').forEach(element => {
+            if (element.type !== 'button') {
+                element.disabled = true;
+            }
+            if (element.tagName === 'BUTTON' && element.id !== 'end-visit-button') {
+                element.hidden = true;
+            }
+        });
+    }
+});
+
+function saveNotes() {
+    // Placeholder for backend logic to save notes
+    alert('Notes saved successfully!');
+}
+
+const diagnoses = []; // Placeholder for diagnoses data
+
+function addDiagnosis(event) {
+    event.preventDefault();
+    const input = document.getElementById('diagnosis-input');
+    const diagnosis = input.value.trim();
+    if (diagnosis) {
+        diagnoses.push(diagnosis);
+        renderDiagnoses();
+        input.value = ''; // Clear the input field
+        updateVisitSummary(); // Update visit summary
+    }
+}
+
+function deleteDiagnosis(index) {
+    diagnoses.splice(index, 1);
+    renderDiagnoses();
+}
+
+function renderDiagnoses() {
+    const list = document.getElementById('diagnosis-list');
+    list.innerHTML = ''; // Clear the list
+    diagnoses.forEach((diagnosis, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4';
+        item.innerHTML = `
+            <span class="text-gray-900">${diagnosis}</span>
+            <button 
+                onclick="deleteDiagnosis(${index})" 
+                class="text-red-600 hover:text-red-800"
+                title="Delete"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+    updateVisitSummary();
+}
+
+const medications = []; // Placeholder for medications data
+
+function addMedication(event) {
+    event.preventDefault();
+    const name = document.getElementById('medication-name').value.trim();
+    const dosage = document.getElementById('medication-dosage').value.trim();
+    const duration = document.getElementById('medication-duration').value.trim();
+
+    if (name && dosage && duration) {
+        medications.push({ name, dosage, duration });
+        renderMedications();
+        document.getElementById('medication-form').reset(); // Clear the form
+        updateVisitSummary(); // Update visit summary
+    }
+}
+
+function deleteMedication(index) {
+    medications.splice(index, 1);
+    renderMedications();
+}
+
+function renderMedications() {
+    const list = document.getElementById('medication-list');
+    list.innerHTML = ''; // Clear the list
+    medications.forEach((medication, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4';
+        item.innerHTML = `
+            <div>
+                <p class="font-medium text-gray-900">${medication.name}</p>
+                <p class="text-sm text-gray-500">${medication.dosage}</p>
+                <p class="text-sm text-gray-500">${medication.duration}</p>
+            </div>
+            <button 
+                onclick="deleteMedication(${index})" 
+                class="text-red-600 hover:text-red-800"
+                title="Delete"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+    updateVisitSummary();
+}
+
+const labResults = []; // Placeholder for lab results data
+
+function addLabResult(event) {
+    event.preventDefault();
+    const testType = document.getElementById('lab-test-type').value.trim();
+    const fileInput = document.getElementById('lab-file');
+    const status = document.getElementById('lab-status').value;
+
+    if (testType && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const result = {
+            testType,
+            status,
+            fileName: file.name,
+            fileUrl: URL.createObjectURL(file), // Simulate file URL
+        };
+        labResults.push(result);
+        renderLabResults();
+        document.getElementById('lab-result-form').reset(); // Clear the form
+        updateVisitSummary(); // Update visit summary
+    }
+}
+
+function deleteLabResult(index) {
+    labResults.splice(index, 1);
+    renderLabResults();
+}
+
+function renderLabResults() {
+    const list = document.getElementById('lab-result-list');
+    list.innerHTML = ''; // Clear the list
+    labResults.forEach((result, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4';
+        item.innerHTML = `
+            <div>
+                <p class="font-medium text-gray-900">${result.testType}</p>
+                <p class="text-sm text-gray-500">Status: ${result.status}</p>
+            </div>
+            <a 
+                href="${result.fileUrl}" 
+                target="_blank" 
+                class="text-blue-600 hover:underline"
+            >
+                View/Download
+            </a>
+            <button 
+                onclick="deleteLabResult(${index})" 
+                class="text-red-600 hover:text-red-800"
+                title="Delete"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+    updateVisitSummary();
+}
+
+const immunizations = []; // Placeholder for immunizations data
+
+function addImmunization(event) {
+    event.preventDefault();
+    const name = document.getElementById('immunization-name').value.trim();
+    const date = document.getElementById('immunization-date').value;
+    const dose = document.getElementById('immunization-dose').value.trim();
+    const status = document.getElementById('immunization-status').value;
+
+    if (name && date && dose && status) {
+        immunizations.push({ name, date, dose, status });
+        renderImmunizations();
+        document.getElementById('immunization-form').reset(); // Clear the form
+        updateVisitSummary(); // Update visit summary
+    }
+}
+
+function deleteImmunization(index) {
+    immunizations.splice(index, 1);
+    renderImmunizations();
+}
+
+function renderImmunizations() {
+    const list = document.getElementById('immunization-list');
+    list.innerHTML = ''; // Clear the list
+    immunizations.forEach((immunization, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4';
+        item.innerHTML = `
+            <div>
+                <p class="font-medium text-gray-900">${immunization.name}</p>
+                <p class="text-sm text-gray-500">Date: ${immunization.date}</p>
+                <p class="text-sm text-gray-500">Dose: ${immunization.dose}</p>
+                <p class="text-sm text-gray-500">Status: ${immunization.status}</p>
+            </div>
+            <button 
+                onclick="deleteImmunization(${index})" 
+                class="text-red-600 hover:text-red-800"
+                title="Delete"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+    updateVisitSummary();
+}
+
+const documents = []; // Placeholder for documents data
+
+function addDocument(event) {
+    event.preventDefault();
+    const title = document.getElementById('document-title').value.trim();
+    const type = document.getElementById('document-type').value;
+    const fileInput = document.getElementById('document-file');
+
+    if (title && type && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const document = {
+            title,
+            type,
+            uploadDate: new Date().toLocaleDateString(),
+            fileName: file.name,
+            fileUrl: URL.createObjectURL(file), // Simulate file URL
+        };
+        documents.push(document);
+        renderDocuments();
+        document.getElementById('upload-document-form').reset(); // Clear the form
+        updateVisitSummary(); // Update visit summary
+    }
+}
+
+function deleteDocument(index) {
+    documents.splice(index, 1);
+    renderDocuments();
+}
+
+function renderDocuments() {
+    const list = document.getElementById('document-list');
+    list.innerHTML = ''; // Clear the list
+    documents.forEach((doc, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4';
+        item.innerHTML = `
+            <div>
+                <p class="font-medium text-gray-900">${doc.title}</p>
+                <p class="text-sm text-gray-500">Type: ${doc.type}</p>
+                <p class="text-sm text-gray-500">Uploaded: ${doc.uploadDate}</p>
+            </div>
+            <a 
+                href="${doc.fileUrl}" 
+                target="_blank" 
+                class="text-blue-600 hover:underline"
+            >
+                Download
+            </a>
+            <button 
+                onclick="deleteDocument(${index})" 
+                class="text-red-600 hover:text-red-800"
+                title="Delete"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        list.appendChild(item);
+    });
+    updateVisitSummary();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.tab-button');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            // Remove active styles from all tabs
+            tabs.forEach(t => t.classList.remove('bg-blue-50', 'font-semibold', 'text-blue-700'));
+            // Hide all content
+            contents.forEach(content => content.classList.add('hidden'));
+            // Add active styles to clicked tab
+            this.classList.add('bg-blue-50', 'font-semibold', 'text-blue-700');
+            // Show corresponding content
+            const target = document.getElementById(this.getAttribute('data-tab'));
+            target.classList.remove('hidden');
+        });
+    });
+
+    // Set the first tab as active by default
+    tabs[0].classList.add('bg-blue-50', 'font-semibold', 'text-blue-700');
+    contents[0].classList.remove('hidden');
+
+    // Call updateVisitSummary to populate the summary on page load
+    updateVisitSummary();
+});
+
+function confirmEndVisit() {
+    const modal = document.getElementById('endVisitModal');
+    modal.classList.remove('hidden');
+}
+
+function closeEndVisitModal() {
+    const modal = document.getElementById('endVisitModal');
+    modal.classList.add('hidden');
+}
+
+function finalizeVisit() {
+    // Simulate backend logic to finalize the visit
+    alert('Visit finalized successfully! Encounter status is now "closed".');
+    const endVisitButton = document.getElementById('end-visit-button');
+    const confirmButton = document.getElementById('confirm-end-visit-button');
+    const inputs = document.querySelectorAll('input, textarea, select, button');
+
+    // Disable all inputs and buttons
+    inputs.forEach(input => {
+        input.disabled = true;
+    });
+
+    // Disable the "End Visit" button
+    endVisitButton.classList.add('opacity-50', 'cursor-not-allowed');
+    endVisitButton.disabled = true;
+
+    // Close the modal
+    closeEndVisitModal();
+}
+
+function prepareDataBeforeSubmit() {
+    // Store JSON-serialized arrays in hidden fields:
+    document.getElementById('diagnoses-hidden').value = JSON.stringify(diagnoses);
+    document.getElementById('medications-hidden').value = JSON.stringify(medications);
+    document.getElementById('immunizations-hidden').value = JSON.stringify(immunizations);
+    document.getElementById('labresults-hidden').value = JSON.stringify(labResults);
+    document.getElementById('documents-hidden').value = JSON.stringify(documents);
+}
+
+function updateVisitSummary() {
+    const summaryList = document.getElementById('visit-summary-list');
+    const summaryText = document.getElementById('visit-summary-text');
+    summaryList.innerHTML = ''; // Clear the list
+    let plainTextSummary = ''; // Initialize plain-text summary
+
+    // Add diagnoses
+    if (diagnoses.length > 0) {
+        const diagnosesItem = document.createElement('li');
+        diagnosesItem.textContent = `Diagnoses: ${diagnoses.join(', ')}`;
+        summaryList.appendChild(diagnosesItem);
+        plainTextSummary += `Diagnoses: ${diagnoses.join(', ')}\n`;
+    }
+
+    // Add medications
+    if (medications.length > 0) {
+        const medicationsItem = document.createElement('li');
+        medicationsItem.textContent = `Medications: ${medications.map(m => `${m.name} (${m.dosage}, ${m.duration})`).join(', ')}`;
+        summaryList.appendChild(medicationsItem);
+        plainTextSummary += `Medications: ${medications.map(m => `${m.name} (${m.dosage}, ${m.duration})`).join(', ')}\n`;
+    }
+
+    // Add lab results
+    if (labResults.length > 0) {
+        const labResultsItem = document.createElement('li');
+        labResultsItem.textContent = `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}`;
+        summaryList.appendChild(labResultsItem);
+        plainTextSummary += `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}\n`;
+    }
+
+    // Add immunizations
+    if (immunizations.length > 0) {
+        const immunizationsItem = document.createElement('li');
+        immunizationsItem.textContent = `Immunizations: ${immunizations.map(i => `${i.name} (${i.date}, ${i.status})`).join(', ')}`;
+        summaryList.appendChild(immunizationsItem);
+        plainTextSummary += `Immunizations: ${immunizations.map(i => `${i.name} (${i.date}, ${i.status})`).join(', ')}\n`;
+    }
+
+    // Add documents
+    if (documents.length > 0) {
+        const documentsItem = document.createElement('li');
+        documentsItem.textContent = `Documents: ${documents.map(d => `${d.title} (${d.type})`).join(', ')}`;
+        summaryList.appendChild(documentsItem);
+        plainTextSummary += `Documents: ${documents.map(d => `${d.title} (${d.type})`).join(', ')}\n`;
+    }
+
+    // If no data, show a placeholder
+    if (summaryList.children.length === 0) {
+        const placeholder = document.createElement('li');
+        placeholder.textContent = 'No summary available yet.';
+        placeholder.className = 'text-gray-500';
+        summaryList.appendChild(placeholder);
+        plainTextSummary = 'No summary available yet.';
+    }
+
+    // Update the hidden textarea with the plain-text summary
+    summaryText.value = plainTextSummary.trim();
+}
+
+// Call updateVisitSummary whenever data changes
+renderDiagnoses = function () {
+    // ...existing code...
+    updateVisitSummary();
+};
+
+renderMedications = function () {
+    // ...existing code...
+    updateVisitSummary();
+};
+
+renderLabResults = function () {
+    // ...existing code...
+    updateVisitSummary();
+};
+
+renderImmunizations = function () {
+    // ...existing code...
+    updateVisitSummary();
+};
+
+renderDocuments = function () {
+    // ...existing code...
+    updateVisitSummary();
+};
+
+// Initial call to populate the summary
+updateVisitSummary();
+</script>
+{% endblock %}

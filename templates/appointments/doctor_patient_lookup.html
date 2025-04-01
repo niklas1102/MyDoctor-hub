@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <h2 class="text-2xl font-semibold text-center">Find a Patient</h2>
+    <div class="mt-6 flex justify-center relative">
+      <input 
+        type="text" 
+        id="patient-search" 
+        placeholder="Search by name or ID…" 
+        class="w-full max-w-md p-3 rounded-lg border border-gray-300 shadow-sm"
+      />
+      <ul id="patient-results" class="absolute bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-w-md hidden z-10">
+        <!-- Search results will be dynamically populated here -->
+      </ul>
+    </div>
+    <div id="patient-list" class="mt-6 divide-y divide-gray-200 bg-white rounded-lg shadow">
+      {% if patients %}
+        {% for patient in patients %}
+        <div 
+          class="flex justify-between items-center p-4 hover:bg-gray-50 cursor-pointer patient-item"
+          onclick="window.location.href='{% url 'appointments:doctor_patient_overview' patient.id %}'"
+        >
+          <div>
+            <p class="font-medium text-gray-900 patient-name">{{ patient.profile.full_name|default:patient.username }}</p>
+            <p class="text-sm text-gray-500 patient-dob">{{ patient.profile.dob|date:"Y-m-d" }}</p> <!-- Display DOB -->
+            <p class="text-sm text-gray-500 patient-id">ID: {{ patient.id }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-center text-gray-500">No patients found.</p>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+<script>
+// Commenting out the fetch-based code to avoid reloading data from the server
+/*
+document.getElementById('patient-search').addEventListener('input', function () {
+  // ...existing fetch code...
+});
+*/
+
+// New client-side filter:
+document.getElementById('patient-search').addEventListener('input', function () {
+  const query = this.value.toLowerCase().trim();
+  const items = document.querySelectorAll('.patient-item');
+  items.forEach(item => {
+    const nameText = item.querySelector('.patient-name').textContent.toLowerCase();
+    const dobText = item.querySelector('.patient-dob').textContent.toLowerCase();
+    const idText = item.querySelector('.patient-id').textContent.toLowerCase();
+    if (nameText.includes(query) || dobText.includes(query) || idText.includes(query)) {
+      item.classList.remove('hidden');
+    } else {
+      item.classList.add('hidden');
+    }
+  });
+});
+</script>
+{% endblock %}

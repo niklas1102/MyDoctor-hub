@@ -847,7 +847,7 @@ function updateVisitSummary() {
 
     // Add lab results
     if (labResults.length > 0) {
-        const labResultsItem = document.createElement('li');
+tsItem = document.createElement('li');
         labResultsItem.textContent = `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}`;
         summaryList.appendChild(labResultsItem);
         plainTextSummary += `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}\n`;

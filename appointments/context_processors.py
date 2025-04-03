@@ -21,6 +21,8 @@ def inbox_data(request):
         patient=user, date__date__gte=today
     )
 
+    upcoming_appointments = Appointment.objects.all()
+
     # If doctor, show same-day appointment count
     same_day_count = (
         upcoming_appointments.filter(date__date=today).count() if is_doctor else 0

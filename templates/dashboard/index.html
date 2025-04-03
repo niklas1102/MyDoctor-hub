@@ -21,9 +21,9 @@
     </div>
 
     <!-- Navigation cards -->
-    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-3">
       <a href="{% url 'appointments:appointment_list' %}" class="group block">
-        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+        <div class="p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
           <div class="flex items-center">
             <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full group-hover:bg-blue-200">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -41,7 +41,7 @@
 
       <!-- Chat with Doctor -->
       <a href="{% url 'chatbot' %}" class="group block">
-        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+        <div class="p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
           <div class="flex items-center">
             <div class="p-3 mr-4 text-yellow-500 bg-yellow-100 rounded-full group-hover:bg-yellow-200">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -58,7 +58,7 @@
 
       <!-- My Profile -->
       <a href="{% url 'index' %}" class="group block">
-        <div class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
+        <div class="p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition">
           <div class="flex items-center">
             <div class="p-3 mr-4 text-purple-500 bg-purple-100 rounded-full group-hover:bg-purple-200">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -72,6 +72,38 @@
           </div>
         </div>
       </a>
+    </div>
+    <div class="p-4 bg-white rounded-lg dark:bg-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition shadow-lg">
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Upcoming Events</h2>
+      <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600 border border-gray-200 mb-4">
+        <thead class="bg-gray-100 dark:bg-gray-700 text-start">
+          <tr>
+            <th scope="col" class="text-start p-4">User Name</th>
+            <th scope="col" class="text-start p-4">Date  </th>
+            {% comment %} <th scope="col" class="p-4"></th> {% endcomment %}
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+          {% for appt in inbox_appointments %}
+          <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                {% if is_doctor %}
+                  {{ appt.patient.get_full_name|default:appt.patient.username }}
+                {% else %}
+                  {{ appt.doctor.get_full_name|default:appt.doctor.username }}
+                {% endif %}
+              </div>
+            </td>
+            <td class="w-4 p-4">
+              <div class="flex items-center">
+                Upcoming Appointment  on {{ appt.date|date:"Y-m-d H:i" }}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </main>

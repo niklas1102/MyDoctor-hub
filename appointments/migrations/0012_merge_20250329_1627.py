@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('appointments', '0011_remove_labresult_report_url_and_more'),
-        ('appointments', 'XXXX_auto'),
+        ("appointments", "0011_remove_labresult_report_url_and_more"),
+        ("appointments", "XXXX_auto"),
     ]
 
-    operations = [
-    ]
+    operations = []

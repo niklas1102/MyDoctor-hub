@@ -9,13 +9,18 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('appointments', '0020_patient_dob'),
+        ("appointments", "0020_patient_dob"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='patient',
-            name='user',
-            field=models.OneToOneField(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='patient_profile', to=settings.AUTH_USER_MODEL),
+            model_name="patient",
+            name="user",
+            field=models.OneToOneField(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="patient_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

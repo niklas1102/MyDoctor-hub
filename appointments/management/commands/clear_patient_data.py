@@ -1,5 +1,14 @@
 from django.core.management.base import BaseCommand
-from appointments.models import Encounter, LabResult, Prescription, Document, Diagnosis, Medication, Immunization
+from appointments.models import (
+    Encounter,
+    LabResult,
+    Prescription,
+    Document,
+    Diagnosis,
+    Medication,
+    Immunization,
+)
+
 
 class Command(BaseCommand):
     help = "Clear all patient-related data for the Patient Overview"
@@ -14,4 +23,6 @@ class Command(BaseCommand):
         Medication.objects.all().delete()
         Immunization.objects.all().delete()
 
-        self.stdout.write(self.style.SUCCESS("Successfully cleared all patient-related data."))
+        self.stdout.write(
+            self.style.SUCCESS("Successfully cleared all patient-related data.")
+        )

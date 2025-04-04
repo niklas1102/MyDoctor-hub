@@ -2,16 +2,30 @@
 
 from django.db import migrations, models
 
+
 class Migration(migrations.Migration):
     dependencies = [
-        ('appointments', '0016_merge_000X_update_patient_ids_0015_delete_user'),  # Ensure this runs after the merge
+        (
+            "appointments",
+            "0016_merge_000X_update_patient_ids_0015_delete_user",
+        ),  # Ensure this runs after the merge
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Patient',
+            name="Patient",
             fields=[
-                ('id', models.CharField(default=None, editable=False, max_length=5, primary_key=True, serialize=False, unique=True)),
+                (
+                    "id",
+                    models.CharField(
+                        default=None,
+                        editable=False,
+                        max_length=5,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
             ],
         ),
     ]

@@ -7,6 +7,6 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("starter/", views.starter, name="starter"),
     path("chatbot/", views.chatbot, name="chatbot"),
-    path('appointments/', include('appointments.urls', namespace='appointments')),
+    path("appointments/", include("appointments.urls", namespace="appointments")),
     path("inbox/", views.inbox, name="inbox"),
 ]

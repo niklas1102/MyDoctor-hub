@@ -14,13 +14,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
-from django.views.static import serve 
+from django.views.static import serve
 from home import views
 
 urlpatterns = [
@@ -28,15 +33,14 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include("apps.users.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
-    
-    re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}), 
-    re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),     
-    path('terms/', views.terms_view, name='terms'),
-    path('privacy/', views.privacy_view, name='privacy'),
-    path('licensing/', views.licensing_view, name='licensing'),
-    path('cookie/', views.cookie_view, name='cookie'),
-    path('contact/', views.contact_view, name='contact'),
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    re_path(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),
+    path("terms/", views.terms_view, name="terms"),
+    path("privacy/", views.privacy_view, name="privacy"),
+    path("licensing/", views.licensing_view, name="licensing"),
+    path("cookie/", views.cookie_view, name="cookie"),
+    path("contact/", views.contact_view, name="contact"),
 ]
 
 urlpatterns += static(settings.CELERY_LOGS_URL, document_root=settings.CELERY_LOGS_DIR)
-urlpatterns += static(settings.MEDIA_URL      , document_root=settings.MEDIA_ROOT     )
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

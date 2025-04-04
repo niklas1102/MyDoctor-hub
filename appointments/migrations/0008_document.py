@@ -9,19 +9,45 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('appointments', '0007_prescription'),
+        ("appointments", "0007_prescription"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Document',
+            name="Document",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('doc_type', models.CharField(choices=[('Lab Report', 'Lab Report'), ('Prescription', 'Prescription'), ('Referral', 'Referral'), ('Other', 'Other')], max_length=50)),
-                ('file', models.FileField(upload_to='documents/')),
-                ('upload_date', models.DateTimeField(auto_now_add=True)),
-                ('patient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "doc_type",
+                    models.CharField(
+                        choices=[
+                            ("Lab Report", "Lab Report"),
+                            ("Prescription", "Prescription"),
+                            ("Referral", "Referral"),
+                            ("Other", "Other"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("file", models.FileField(upload_to="documents/")),
+                ("upload_date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "patient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="documents",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

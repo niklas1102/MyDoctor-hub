@@ -7,39 +7,94 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('appointments', '0008_document'),
+        ("appointments", "0008_document"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Medication',
+            name="Medication",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('dosage', models.CharField(max_length=255)),
-                ('duration', models.CharField(max_length=255)),
-                ('date_prescribed', models.DateTimeField(auto_now_add=True)),
-                ('encounter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='medications', to='appointments.encounter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("dosage", models.CharField(max_length=255)),
+                ("duration", models.CharField(max_length=255)),
+                ("date_prescribed", models.DateTimeField(auto_now_add=True)),
+                (
+                    "encounter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="medications",
+                        to="appointments.encounter",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Immunization',
+            name="Immunization",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('date', models.DateField()),
-                ('dose', models.CharField(max_length=255)),
-                ('status', models.CharField(choices=[('Completed', 'Completed'), ('Scheduled', 'Scheduled'), ('Missed', 'Missed')], max_length=50)),
-                ('encounter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='immunizations', to='appointments.encounter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("date", models.DateField()),
+                ("dose", models.CharField(max_length=255)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("Completed", "Completed"),
+                            ("Scheduled", "Scheduled"),
+                            ("Missed", "Missed"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "encounter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="immunizations",
+                        to="appointments.encounter",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Diagnosis',
+            name="Diagnosis",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.TextField()),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('encounter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='diagnoses', to='appointments.encounter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("description", models.TextField()),
+                ("date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "encounter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="diagnoses",
+                        to="appointments.encounter",
+                    ),
+                ),
             ],
         ),
     ]

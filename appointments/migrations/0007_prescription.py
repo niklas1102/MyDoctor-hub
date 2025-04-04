@@ -9,20 +9,42 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('appointments', '0006_labresult'),
+        ("appointments", "0006_labresult"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Prescription',
+            name="Prescription",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('medication_name', models.CharField(max_length=255)),
-                ('dosage', models.CharField(max_length=255)),
-                ('instructions', models.TextField(blank=True, null=True)),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('doctor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='issued_prescriptions', to=settings.AUTH_USER_MODEL)),
-                ('patient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prescriptions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("medication_name", models.CharField(max_length=255)),
+                ("dosage", models.CharField(max_length=255)),
+                ("instructions", models.TextField(blank=True, null=True)),
+                ("date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "doctor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="issued_prescriptions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "patient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="prescriptions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

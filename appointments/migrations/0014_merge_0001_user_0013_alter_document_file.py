@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('appointments', '0001_user'),
-        ('appointments', '0013_alter_document_file'),
+        ("appointments", "0001_user"),
+        ("appointments", "0013_alter_document_file"),
     ]
 
-    operations = [
-    ]
+    operations = []

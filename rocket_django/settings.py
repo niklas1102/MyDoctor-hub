@@ -3,10 +3,10 @@
 TEMPLATES = [
     {
         # ...existing code...
-        'OPTIONS': {
-            'context_processors': [
+        "OPTIONS": {
+            "context_processors": [
                 # ...existing code...
-                'django.contrib.auth.context_processors.auth',  # Ensure this is included
+                "django.contrib.auth.context_processors.auth",  # Ensure this is included
                 # ...existing code...
             ],
         },

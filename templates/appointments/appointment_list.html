@@ -4,8 +4,10 @@
 {% block content %}
 <main>
   <div class="px-4 pt-6">
-    <h1 class="text-2xl font-bold mb-4">My Appointments</h1>
-    <a href="{% url 'appointments:book_appointment' %}" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 inline-block hover:bg-blue-600">Book New Appointment</a>
+    <div class="flex justify-between mb-6 items-center">
+      <h1 class="text-2xl font-bold mb-4">My Appointments</h1>
+      <a href="{% url 'appointments:book_appointment' %}" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 inline-block hover:bg-blue-600">Book New Appointment</a>
+    </div>
     <div class="bg-white shadow-md rounded p-4">
       {% if appointments %}
         <table class="min-w-full divide-y divide-gray-200">

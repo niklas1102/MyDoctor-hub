@@ -13,16 +13,18 @@ def inbox_data(request):
     is_doctor = user.groups.filter(name="Doctor").exists()
     is_patient = user.groups.filter(name="Patient").exists()
 
-    # Upcoming appointments (future or same day)
-    upcoming_appointments = (
-        Appointment.objects.filter(
-            doctor=user if is_doctor else None, date__date__gte=today
-        )
-        if is_doctor
-        else Appointment.objects.filter(patient=user, date__date__gte=today)
-    )
-
-    upcoming_appointments = Appointment.objects.all()
+    if is_patient:
+        upcoming_appointments = Appointment.objects.filter(
+            patient=request.user, date__date__gte=today
+        ).select_related("doctor", "patient")
+    elif is_doctor:
+        upcoming_appointments = Appointment.objects.filter(
+            doctor=request.user, date__date__gte=today
+        ).select_related("doctor", "patient")
+    else:
+        upcoming_appointments = Appointment.objects.filter(
+            date__date__gte=today
+        ).select_related("doctor", "patient")
 
     # If doctor, show same-day appointment count
     same_day_count = (

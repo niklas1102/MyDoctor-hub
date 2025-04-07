@@ -21,24 +21,25 @@
 {% block content %}
 
 {% if is_patient %}
-<div class="mb-6">
-    <!-- Tab Navigation -->
-    <nav class="flex flex-wrap sm:flex-nowrap border-b border-gray-200 dark:border-gray-700">
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-user">User settings </button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-records">Medical Records</button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-labs">Lab Results</button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-medications">Medications</button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-visits">Past Visits</button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-immunizations">Immunizations</button>
-        <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-documents">Documents</button>
-    </nav>
-</div>
-
-<!-- Tab Content -->
+<div class="p-4 m-6 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+    <div class="px-4 pb-6">
+        <!-- Tab Navigation -->
+        <nav class="flex flex-wrap sm:flex-nowrap border-b border-gray-200 dark:border-gray-700">
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-user">User settings </button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-records">Medical Records</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-labs">Lab Results</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-medications">Medications</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-visits">Past Visits</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-immunizations">Immunizations</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-documents">Documents</button>
+        </nav>
+    </div>
+    <!-- Tab Content -->
 <div id="tab-user" class="tab-content">
-    <div class="grid grid-cols-1 px-4 pt-6 xl:grid-cols-1 xl:gap-4 dark:bg-gray-900">
+    <div class="grid grid-cols-1 xl:grid-cols-1 xl:gap-4 dark:bg-gray-900">
+        {% comment %} 
         <div class="mb-4 col-span-full xl:mb-2">
-            {% comment %} <nav class="flex mb-5" aria-label="Breadcrumb">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
                   <li class="inline-flex items-center">
                     <a href="#" class="inline-flex items-center text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white">
@@ -60,8 +61,8 @@
                   </li>
                 </ol>
             </nav> {% endcomment %}
-            {% comment %} <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">User settings</h1> {% endcomment %}
-        </div>
+            {% comment %} <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">User settings</h1>
+        </div>  {% endcomment %}
         <!-- Right Content -->
         {% comment %} <div class="col-span-full xl:col-auto">
             <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
@@ -69,7 +70,9 @@
             </div>
         </div> {% endcomment %}
         <div class="col-span-2">
+            
             <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+                <h3 class="mb-4 text-xl font-semibold dark:text-white">General information</h3>
                 <div class="mb-4 items-center justify-center flex-col sm:flex xl:block 2xl:flex sm:space-x-4 xl:space-x-0">
                     {% if request.user.profile.avatar %}
                         <img class="mb-4 rounded-full w-40 h-40 sm:mb-0 xl:mb-4 2xl:mb-0" src="{{ request.user.profile.avatar.url }}" alt="Jese picture">
@@ -100,7 +103,7 @@
                         </form>
                     </div>
                 </div>
-                <h3 class="mb-4 text-xl font-semibold dark:text-white">General information</h3>
+                
                 <form method="post">
                     {% csrf_token %}
     
@@ -490,6 +493,10 @@
         </script>
     </div>
 </div>
+</div>
+
+
+
 {% else %}
 <div class="grid grid-cols-1 px-4 pt-6 xl:grid-cols-1 xl:gap-4 dark:bg-gray-900">
     <div class="mb-4 col-span-full xl:mb-2">

@@ -177,3 +177,4 @@ whitenoise==6.5.0
 widgetsnbextension==4.0.13
 yarl==1.13.1
 django-widget-tweaks
+google-api-python-client==2.166.0

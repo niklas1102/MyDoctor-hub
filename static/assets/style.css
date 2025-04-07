@@ -288,3 +288,11 @@ a.schedule-appointment-button:hover {
   flex-direction: column;
   justify-content: space-between;
 }
+
+.booking-form form {
+  display: flex;
+  gap: 20px;
+}
+.booking-form form label{
+  display: block;
+}

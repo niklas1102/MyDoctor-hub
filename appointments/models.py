@@ -10,14 +10,21 @@ User = get_user_model()
 
 
 class Patient(models.Model):
+    GENDER_CHOICES = [
+        ("male", "Male"),
+        ("female", "Female"),
+        ("other", "Other"),
+    ]
     id = models.CharField(
         max_length=5, primary_key=True, unique=True, editable=False, default=None
     )
     temp_id = models.CharField(
         max_length=5, null=True, unique=True
     )  # Temporary field for migration
+    full_name = models.CharField(max_length=255, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)  # Add date of birth field
-
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)  # Fixed gender field
+    
     def save(self, *args, **kwargs):
         if not self.id:  # Generate a random ID only if the ID is not already set
             self.id = self.generate_random_id()
@@ -29,7 +36,7 @@ class Patient(models.Model):
             random_id = f"{random.randint(10000, 99999)}"
             if not Patient.objects.filter(id=random_id).exists():
                 return random_id
-
+    
 
 class Appointment(models.Model):
     STATUS_CHOICES = [

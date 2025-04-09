@@ -16,7 +16,6 @@ PROJECT_ID = 'mydoctor-ehr'
 LOCATION = 'europe-west3'
 DATASET_ID = 'patient-records'
 FHIR_STORE_ID = 'ehr_store'
-
 FHIR_BASE_URL = f"projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/fhirStores/{FHIR_STORE_ID}"
 
 # patient crud
@@ -97,18 +96,18 @@ def get_condition(condition_id):
     request = service.projects().locations().datasets().fhirStores().fhir().read(name=name)
     return request.execute()
 
-def update_encounter(encounter_id,updated_data):
+def update_condition(condition_id,updated_data):
     service = get_healthcare_service()
-    name = f"{FHIR_BASE_URL}/Encounter/{encounter_id}"
+    name = f"{FHIR_BASE_URL}/Condition/{condition_id}"
     request = service.projects().locations().datasets().fhirStores().fhir().update(
         name=name,
         body=updated_data
     )
     return request.execute()
 
-def delete_encounter(encounter_id):
+def delete_condition(condition_id):
     service = get_healthcare_service()
-    name = f"{FHIR_BASE_URL}/Encounter/{encounter_id}"
+    name = f"{FHIR_BASE_URL}/Condition/{condition_id}"
     request = service.projects().locations().datasets().fhirStores().fhir().delete(name=name)
     return request.execute()
 
@@ -238,12 +237,12 @@ def delete_document_reference(document_id):
 
 
 
-resource_data = {
-            "resourceType": "Patient",
-            "name": [{"use": "official", "family": "Doe", "given": ["John"]}],
-            "gender": "male",
-            "birthDate": "1990-01-01"
-        }
+# resource_data = {
+#             "resourceType": "Patient",
+#             "name": [{"use": "official", "family": "Doe", "given": ["John"]}],
+#             "gender": "male",
+#             "birthDate": "1990-01-01"
+#         }
 
-response = create_patient(resource_data)
+# response = create_patient(resource_data)
 

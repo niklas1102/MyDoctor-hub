@@ -24,6 +24,7 @@ class Patient(models.Model):
     full_name = models.CharField(max_length=255, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)  # Add date of birth field
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)  # Fixed gender field
+    contact = models.CharField(max_length=255, null=True, blank=True)   
     
     def save(self, *args, **kwargs):
         if not self.id:  # Generate a random ID only if the ID is not already set
@@ -63,9 +64,11 @@ class Appointment(models.Model):
 
 class Encounter(models.Model):
     date = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(null = True, blank=True)
+    end_time = models.DateTimeField(null = True, blank=True)
     status = models.CharField(
         max_length=20,
-        choices=[("Active", "Active"), ("Closed", "Closed")],
+        choices=[("Active", "Active"), ("Finished", "Finished")],
         default="Active",
     )
     doctor = models.ForeignKey(
@@ -74,6 +77,7 @@ class Encounter(models.Model):
     patient = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="patient_encounters"
     )
+    reason = models.TextField(default="No reason provided")
     notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -177,3 +181,29 @@ class Immunization(models.Model):
 
     def __str__(self):
         return f"Immunization: {self.name} (Encounter ID: {self.encounter.id})"
+
+class MedicalRecords(models.Model):
+    encounter = models.ForeignKey(
+        Encounter, on_delete=models.CASCADE, related_name="medical_records", null=True
+    )
+    patient = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="medical_records", null=True
+    )
+    record_type = models.CharField(max_length=255)
+    type = models.CharField(
+        max_length=50,
+        choices=[
+            ("Diagnosis", "Diagnosis"),
+            ("Medication", "Medication"),
+            ("Immunization", "Immunization"),
+            ("Lab Result", "Lab Result"),
+            ("Prescription", "Prescription"),
+            ("Document", "Document"),
+        ],
+    )
+    summary = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="medical_records/", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.record_type} - {self.date.strftime('%Y-%m-%d')}"

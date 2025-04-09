@@ -1,14 +1,54 @@
 # appointments/forms.py
 
 from django import forms
-from .models import Appointment
+from .models import Appointment, Diagnosis, Document, Immunization, LabResult, MedicalRecords, Patient, Encounter, Prescription
 from django.contrib.auth import get_user_model
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field
 
 User = get_user_model()
 
+class PatientForm(forms.ModelForm):
+    class Meta:
+        model = Patient
+        fields = ['full_name', 'dob', 'gender', 'contact']
 
+class EncounterForm(forms.ModelForm):
+    class Meta:
+        model = Encounter
+        fields = ['start_time', 'end_time', 'status', 'doctor', 'patient', 'notes']
+        widgets = {
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+class LabResultForm(forms.ModelForm):
+    class Meta:
+        model = LabResult
+        fields = ['encounter', 'patient', 'test_type', 'status', 'file']
+        
+class PrescriptionForm(forms.ModelForm):
+    class Meta:
+        model = Prescription
+        fields = ['encounter', 'patient', 'medication_name', 'dosage', 'duration', 'doctor']
+        
+class DiagnosisForm(forms.ModelForm):
+    class Meta:
+        model = Diagnosis
+        fields = ['encounter', 'description']
+        
+class ImmunizationForm(forms.ModelForm):
+    class Meta:
+        model = Immunization
+        fields = ['encounter', 'name', 'date', 'dose', 'status']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['encounter', 'patient', 'title', 'doc_type', 'file']
+        
 class AppointmentForm(forms.ModelForm):
     doctor = forms.ModelChoiceField(
         queryset=User.objects.filter(groups__name="Doctor").exclude(
@@ -42,3 +82,12 @@ class AppointmentForm(forms.ModelForm):
         if not doctor:
             raise forms.ValidationError("Please select a valid doctor.")
         return doctor
+
+class MedicalRecordsForm(forms.ModelForm):
+    class Meta:
+        model = MedicalRecords
+        fields = ['encounter', 'patient', 'record_type', 'type', 'summary', 'file']
+        widgets = {
+            'summary': forms.Textarea(attrs={'rows': 4}),
+        }
+        

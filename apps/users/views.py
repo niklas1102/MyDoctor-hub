@@ -7,6 +7,7 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView,
 )
 from django.views.generic import CreateView
+from appointments.models import Encounter, Immunization, LabResult, Prescription, MedicalRecords
 from apps.common.models import Product
 from apps.users.models import Profile, Document  # Move the import to the top
 from apps.users.forms import (
@@ -101,11 +102,23 @@ def profile(request):
             messages.success(request, "Profile updated successfully")
     else:
         form = ProfileForm(instance=profile)
+        
+    user = request.user
+    encounters = Encounter.objects.filter(patient=user).order_by("-date")
+    lab_results = LabResult.objects.filter(patient=user).order_by("-date")
+    prescriptions = Prescription.objects.filter(patient=user).order_by("-date")
+    immunizations = Immunization.objects.filter(encounter__patient=user).order_by("-date")
+    medical_records = MedicalRecords.objects.filter(patient=user).order_by("-date")
 
     context = {
         "form": form,
         "segment": "profile",
-        "documents": documents,  # Pass documents to the template
+        "documents": documents,
+        "past_visits": encounters,
+        "lab_results": lab_results,
+        "medications": prescriptions,
+        "immunizations": immunizations,
+        "medical_records": medical_records,
     }
     return render(request, "dashboard/profile.html", context)
 

@@ -15,9 +15,9 @@
 
 
   {% if messages %}
-  <div id="alert-container">
+  <div id="alert-container" class=" m-2">
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} rounded py-2 px-3 flex justify-between items-center mb-2">
+      <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 alert alert-{{ message.tags }} rounded flex justify-between items-center m-2">
         <span>{{ message }}</span>
         <button type="button" aria-label="Close" class="ml-2" onclick="this.parentElement.remove()">
           &times;

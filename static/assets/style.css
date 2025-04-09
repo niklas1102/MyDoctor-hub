@@ -45,7 +45,7 @@
   @apply dark:bg-gray-800 !important;
 }
 
-.svgMap-map-wrapper .svgMap-control-button  {
+.svgMap-map-wrapper .svgMap-control-button {
   @apply rounded-lg border-solid border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600 !important;
 }
 
@@ -123,7 +123,7 @@
   @apply rounded-lg border border-gray-200 bg-white text-sm font-medium px-4 py-2 text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-2 focus:ring-primary-700 focus:text-primary-700 !important;
 }
 
-.fc-direction-ltr .fc-toolbar > * > :not(:first-child) {
+.fc-direction-ltr .fc-toolbar>*> :not(:first-child) {
   @apply mx-2 !important;
 }
 
@@ -186,31 +186,38 @@
 } */
 /* Removed circular dependency for text-white */
 .text-white {
-  color: #ffffff; /* Directly applied the color without using @apply */
+  color: #ffffff;
+  /* Directly applied the color without using @apply */
 }
 
 /* Removed circular dependency for bg-red-500 */
 .bg-red-500 {
-  background-color: #ef4444; /* Directly applied the color */
+  background-color: #ef4444;
+  /* Directly applied the color */
 }
 
 /* Removed redundant @apply usage for Cancel button styles */
 a.bg-red-500 {
-  background-color: #ef4444; /* Tailwind's bg-red-500 */
-  color: #ffffff; /* Ensures text is white */
+  background-color: #ef4444;
+  /* Tailwind's bg-red-500 */
+  color: #ffffff;
+  /* Ensures text is white */
   display: inline-block !important;
   opacity: 1 !important;
   visibility: visible !important;
 }
 
 a.bg-red-500:hover {
-  background-color: #dc2626; /* Tailwind's bg-red-600 equivalent */
+  background-color: #dc2626;
+  /* Tailwind's bg-red-600 equivalent */
 }
 
 /* Fixed hover:bg-red-600 */
 .hover\:bg-red-600:hover {
-  background-color: #dc2626; /* Directly applied Tailwind's bg-red-600 color */
+  background-color: #dc2626;
+  /* Directly applied Tailwind's bg-red-600 color */
 }
+
 /* Remove any styles that might hide elements */
 .hidden {
   /* display: none; */
@@ -271,7 +278,8 @@ a.schedule-appointment-button:hover {
 #cancel-appointment-button {
   display: inline-block;
   padding: 8px 16px;
-  background-color: #e60000; /* Bright red color */
+  background-color: #e60000;
+  /* Bright red color */
   color: white;
   border-radius: 4px;
   text-decoration: none;
@@ -280,10 +288,11 @@ a.schedule-appointment-button:hover {
 }
 
 #cancel-appointment-button:hover {
-  background-color: #cc0000; /* Darker red on hover */
+  background-color: #cc0000;
+  /* Darker red on hover */
 }
 
-#main-content{
+#main-content {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -294,6 +303,19 @@ a.schedule-appointment-button:hover {
   display: flex;
   gap: 20px;
 }
-.booking-form form label{
+
+.booking-form form label {
   display: block;
+}
+
+button.remove-image {
+  position: absolute;
+  right: 0px;
+  bottom: 7px;
+  z-index: 1;
+  color: #ef4444;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid #f00;
+  padding: 2px;
 }

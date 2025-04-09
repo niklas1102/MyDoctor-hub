@@ -74,36 +74,28 @@
             <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
                 <h3 class="mb-4 text-xl font-semibold dark:text-white">General information</h3>
                 <div class="mb-4 items-center justify-center flex-col sm:flex xl:block 2xl:flex sm:space-x-4 xl:space-x-0">
-                    {% if request.user.profile.avatar %}
-                        <img class="mb-4 rounded-full w-40 h-40 sm:mb-0 xl:mb-4 2xl:mb-0" src="{{ request.user.profile.avatar.url }}" alt="Jese picture">
-                    {% else %}
-                        <img class="mb-4 rounded-full w-40 h-40 sm:mb-0 xl:mb-4 2xl:mb-0" src="{% static "dist/img/default-user.png" %}" alt="Jese picture">
-                    {% endif %}
+                    <form method="post" action="{% url 'upload_avatar' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label for="avatar" class="relative group block w-28 h-28">
+                            {% if request.user.profile.avatar %}
+                                <img class="rounded-full w-28 h-28 object-cover shadow-lg" src="{{ request.user.profile.avatar.url }}" alt="Profile picture">
+                            {% else %}
+                                <img class="rounded-full w-28 h-28 object-cover shadow-lg" src="{% static 'dist/img/default-user.png' %}" alt="Profile picture">
+                            {% endif %}
+                            <!-- Hover overlay text -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <span class="text-white text-sm font-medium">Update picture</span>
+                            </div>
+                        </label>
+                        <input onchange="this.form.submit()" type="file" name="avatar" id="avatar" class="hidden">
+                    </form>
+                
                     <div class="text-center">
-                        {% comment %} {% if request.user.profile.full_name %}
-                            <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ request.user.profile.full_name }}</h3>
-                        {% else %}
-                            <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ request.user.username }}</h3>
-                        {% endif %} {% endcomment %}
-                        <div class="mb-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        <div class="mb-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
                             JPG, GIF or PNG. Max size of 800K
                         </div>
-                        <form method="post" action="{% url "upload_avatar" %}" enctype="multipart/form-data" class="flex items-center space-x-4">
-                            {% csrf_token %}
-                            <label for="avatar">
-                                <div class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-                                    <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path><path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path></svg>
-                                    Upload picture
-                                </div>
-                            </label>
-                            <input onchange="this.form.submit()" type="file" class="hidden" name="avatar" id="avatar">
-                            <button type="button" class="py-2 px-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                                Delete
-                            </button>
-                        </form>
                     </div>
-                </div>
-                
+                </div>               
                 <form method="post">
                     {% csrf_token %}
     
@@ -444,7 +436,7 @@
                                 <a href="{{ doc.file.url }}" class="hover:underline" target="_blank">Download</a>
                             </td>
                             <td class="px-6 py-4 text-sm text-red-600 dark:text-red-400">
-                                <button onclick="confirmDelete({{ doc.id }})" class="hover:underline" title="Remove">
+                                <button onclick="confirmDelete('{{ doc.id }}')" class="hover:underline" title="Remove">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
@@ -533,36 +525,37 @@
     <div class="col-span-2">
         <div class="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
             <div class="mb-4 items-center justify-center flex-col sm:flex xl:block 2xl:flex sm:space-x-4 xl:space-x-0">
-                {% if request.user.profile.avatar %}
-                    <img class="mb-4 rounded-full w-40 h-40 sm:mb-0 xl:mb-4 2xl:mb-0" src="{{ request.user.profile.avatar.url }}" alt="Jese picture">
-                {% else %}
-                    <img class="mb-4 rounded-full w-40 h-40 sm:mb-0 xl:mb-4 2xl:mb-0" src="{% static "dist/img/default-user.png" %}" alt="Jese picture">
-                {% endif %}
-                <div class="text-center">
-                    {% comment %} {% if request.user.profile.full_name %}
-                        <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ request.user.profile.full_name }}</h3>
-                    {% else %}
-                        <h3 class="mb-1 text-xl font-bold text-gray-900 dark:text-white">{{ request.user.username }}</h3>
-                    {% endif %} {% endcomment %}
-                    <div class="mb-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        JPG, GIF or PNG. Max size of 800K
-                    </div>
-                    <form method="post" action="{% url "upload_avatar" %}" enctype="multipart/form-data" class="flex items-center space-x-4">
+                <div class="mb-4 items-center justify-center flex-col sm:flex xl:block 2xl:flex sm:space-x-4 xl:space-x-0">
+                    <form method="post" action="{% url 'upload_avatar' %}" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <label for="avatar">
-                            <div class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-                                <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path><path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path></svg>
-                                Upload picture
+                        <label for="avatar" class="relative group block w-28 h-28 sm:mb-0 xl:mb-4 2xl:mb-0 cursor-pointer">
+                            {% if request.user.profile.avatar %}
+                                <img class="rounded-full w-28 h-28 object-cover shadow-lg p-2" src="{{ request.user.profile.avatar.url }}" alt="Profile picture">
+                            {% else %}
+                                <img class="rounded-full w-28 h-28 object-cover shadow-lg p-2" src="{% static 'dist/img/default-user.png' %}" alt="Profile picture">
+                            {% endif %}
+                            <!-- Hover overlay text -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <span class="text-white text-sm font-medium">Update picture</span>
                             </div>
                         </label>
-                        <input onchange="this.form.submit()" type="file" class="hidden" name="avatar" id="avatar">
-                        <button type="button" class="py-2 px-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            Delete
-                        </button>
+                        <input onchange="this.form.submit()" type="file" name="avatar" id="avatar" class="hidden">
                     </form>
+                
+                    <div class="text-center">
+                        <div class="mb-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
+                            JPG, GIF or PNG. Max size of 800K
+                        </div>
+                    </div>
                 </div>
+                
             </div>
-            <h3 class="mb-4 text-xl font-semibold dark:text-white">General information</h3>
+            <div class="flex justify-between ">
+                <h3 class="mb-4 text-xl font-semibold dark:text-white">General information</h3>
+                <button class="info_edit">
+                    <svg   class="h-8 w-8 text-gray-500"  width="24"  height="24"  viewBox="0 0 24 24"  xmlns="http://www.w3.org/2000/svg"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round">  <path d="M12 20h9" />  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                </button>
+            </div>
             <form method="post">
                 {% csrf_token %}
 

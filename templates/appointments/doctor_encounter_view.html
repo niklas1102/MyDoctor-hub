@@ -198,24 +198,24 @@
                 <div id="tab-medications" class="tab-content hidden">
                     <h3 class="text-lg font-semibold">Prescribe Medication</h3>
                     <div class="bg-white p-6 rounded-lg shadow mt-4">
-                        <form id="medication-form" onsubmit="addMedication(event)">
+                        <form id="medication-form" onsubmit="addPrescription(event)">
                             <input 
                                 type="text" 
-                                id="medication-name" 
+                                id="prescription-medication-name" 
                                 placeholder="e.g. Amoxicillin" 
                                 class="w-full p-3 border border-gray-300 rounded-md mb-3"
                                 {% if encounter.status == 'Closed' %}disabled{% endif %}
                             />
                             <input 
                                 type="text" 
-                                id="medication-dosage" 
+                                id="prescription-dosage" 
                                 placeholder="e.g. 500mg twice daily" 
                                 class="w-full p-3 border border-gray-300 rounded-md mb-3"
                                 {% if encounter.status == 'Closed' %}disabled{% endif %}
                             />
                             <input 
                                 type="text" 
-                                id="medication-duration" 
+                                id="prescription-duration" 
                                 placeholder="e.g. 7 days" 
                                 class="w-full p-3 border border-gray-300 rounded-md mb-3"
                                 {% if encounter.status == 'Closed' %}disabled{% endif %}
@@ -228,8 +228,8 @@
                                 Prescribe
                             </button>
                         </form>
-                        <div id="medication-list" class="divide-y divide-gray-200 mt-4">
-                            <!-- Medications will be dynamically added here -->
+                        <div id="prescription-list" class="divide-y divide-gray-200 mt-4">
+                            <!-- Prescriptions will be dynamically added here -->
                         </div>
                     </div>
                 </div>
@@ -415,10 +415,11 @@
                         </div>
                         <!-- Hidden fields for diagnoses, medications, immunizations, etc. -->
                         <input type="hidden" id="diagnoses-hidden" name="diagnoses_data" />
-                        <input type="hidden" id="medications-hidden" name="medications_data" />
+                        {% comment %} <input type="hidden" id="medications-hidden" name="medications_data" /> {% endcomment %}
                         <input type="hidden" id="immunizations-hidden" name="immunizations_data" />
                         <input type="hidden" id="labresults-hidden" name="labresults_data" />
                         <input type="hidden" id="documents-hidden" name="documents_data" />
+                        <input type="hidden" id="prescriptions-hidden" name="prescriptions_data" />
                         <div class="flex justify-end mt-4">
                             <button 
                                 id="end-visit-button" 
@@ -537,41 +538,41 @@ function renderDiagnoses() {
     updateVisitSummary();
 }
 
-const medications = []; // Placeholder for medications data
+const prescriptions = []; // Placeholder for prescriptions data
 
-function addMedication(event) {
+function addPrescription(event) {
     event.preventDefault();
-    const name = document.getElementById('medication-name').value.trim();
-    const dosage = document.getElementById('medication-dosage').value.trim();
-    const duration = document.getElementById('medication-duration').value.trim();
+    const name = document.getElementById('prescription-medication-name').value.trim();
+    const dosage = document.getElementById('prescription-dosage').value.trim();
+    const duration = document.getElementById('prescription-duration').value.trim();
 
     if (name && dosage && duration) {
-        medications.push({ name, dosage, duration });
-        renderMedications();
+        prescriptions.push({ name, dosage, duration, instructions });
+        renderPrescriptions();
         document.getElementById('medication-form').reset(); // Clear the form
         updateVisitSummary(); // Update visit summary
     }
 }
 
-function deleteMedication(index) {
-    medications.splice(index, 1);
-    renderMedications();
+function deletePrescription(index) {
+    prescriptions.splice(index, 1);
+    renderPrescriptions();
 }
 
-function renderMedications() {
-    const list = document.getElementById('medication-list');
+function renderPrescriptions() {
+    const list = document.getElementById('prescription-list');
     list.innerHTML = ''; // Clear the list
-    medications.forEach((medication, index) => {
+    prescriptions.forEach((prescription, index) => {
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center p-4';
         item.innerHTML = `
             <div>
-                <p class="font-medium text-gray-900">${medication.name}</p>
-                <p class="text-sm text-gray-500">${medication.dosage}</p>
-                <p class="text-sm text-gray-500">${medication.duration}</p>
+                <p class="font-medium text-gray-900">${prescription.name}</p>
+                <p class="text-sm text-gray-500">Dosage: ${prescription.dosage}</p>
+                <p class="text-sm text-gray-500">Duration: ${prescription.duration}</p>
             </div>
             <button 
-                onclick="deleteMedication(${index})" 
+                onclick="deletePrescription(${index})" 
                 class="text-red-600 hover:text-red-800"
                 title="Delete"
             >
@@ -588,7 +589,7 @@ function renderMedications() {
 const labResults = []; // Placeholder for lab results data
 
 function addLabResult(event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form submission
     const testType = document.getElementById('lab-test-type').value.trim();
     const fileInput = document.getElementById('lab-file');
     const status = document.getElementById('lab-status').value;
@@ -599,12 +600,14 @@ function addLabResult(event) {
             testType,
             status,
             fileName: file.name,
-            fileUrl: URL.createObjectURL(file), // Simulate file URL
+            fileUrl: URL.createObjectURL(file), // Simulate file URL for preview
         };
-        labResults.push(result);
-        renderLabResults();
+        labResults.push(result); // Add to the labResults array
+        renderLabResults(); // Update the UI
         document.getElementById('lab-result-form').reset(); // Clear the form
-        updateVisitSummary(); // Update visit summary
+        updateVisitSummary(); // Update the visit summary
+    } else {
+        alert('Please provide both a test type and a file.');
     }
 }
 
@@ -817,17 +820,19 @@ function finalizeVisit() {
 function prepareDataBeforeSubmit() {
     // Store JSON-serialized arrays in hidden fields:
     document.getElementById('diagnoses-hidden').value = JSON.stringify(diagnoses);
-    document.getElementById('medications-hidden').value = JSON.stringify(medications);
+    document.getElementById('prescriptions-hidden').value = JSON.stringify(prescriptions);
     document.getElementById('immunizations-hidden').value = JSON.stringify(immunizations);
     document.getElementById('labresults-hidden').value = JSON.stringify(labResults);
     document.getElementById('documents-hidden').value = JSON.stringify(documents);
+
+    console.log('Lab Results Data:', labResults);
 }
 
 function updateVisitSummary() {
     const summaryList = document.getElementById('visit-summary-list');
     const summaryText = document.getElementById('visit-summary-text');
-    summaryList.innerHTML = ''; // Clear the list
-    let plainTextSummary = ''; // Initialize plain-text summary
+    summaryList.innerHTML = ''; 
+    let plainTextSummary = ''; 
 
     // Add diagnoses
     if (diagnoses.length > 0) {
@@ -837,17 +842,17 @@ function updateVisitSummary() {
         plainTextSummary += `Diagnoses: ${diagnoses.join(', ')}\n`;
     }
 
-    // Add medications
-    if (medications.length > 0) {
-        const medicationsItem = document.createElement('li');
-        medicationsItem.textContent = `Medications: ${medications.map(m => `${m.name} (${m.dosage}, ${m.duration})`).join(', ')}`;
-        summaryList.appendChild(medicationsItem);
-        plainTextSummary += `Medications: ${medications.map(m => `${m.name} (${m.dosage}, ${m.duration})`).join(', ')}\n`;
+    // Add prescriptions
+    if (prescriptions.length > 0) {
+        const prescriptionsItem = document.createElement('li');
+        prescriptionsItem.textContent = `Prescriptions: ${prescriptions.map(p => `${p.name} (${p.dosage}, ${p.duration})`).join(', ')}`;
+        summaryList.appendChild(prescriptionsItem);
+        plainTextSummary += `Prescriptions: ${prescriptions.map(p => `${p.name} (${p.dosage}, ${p.duration})`).join(', ')}\n`;
     }
 
     // Add lab results
     if (labResults.length > 0) {
-tsItem = document.createElement('li');
+        const labResultsItem = document.createElement('li');
         labResultsItem.textContent = `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}`;
         summaryList.appendChild(labResultsItem);
         plainTextSummary += `Lab Results: ${labResults.map(l => `${l.testType} (${l.status})`).join(', ')}\n`;

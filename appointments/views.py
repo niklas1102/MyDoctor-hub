@@ -316,7 +316,18 @@ def doctor_encounter_view(request, encounter_id):
         imms_data = json.loads(request.POST.get("immunizations_data", "[]"))
         labs_data = json.loads(request.POST.get("labresults_data", "[]"))
         docs_data = json.loads(request.POST.get("documents_data", "[]"))
+        prescriptions_data = json.loads(request.POST.get("prescriptions_data", "[]"))
 
+        for p in prescriptions_data:
+            Prescription.objects.create(
+                encounter=encounter,
+                patient=encounter.patient,
+                doctor=request.user,
+                medication_name=p.get("name", ""),
+                dosage=p.get("dosage", ""),
+                duration=p.get("duration", ""),
+            )
+        
         # Create Diagnosis entries
         for d in diagnoses_data:
             Diagnosis.objects.create(encounter=encounter, description=d)
@@ -345,6 +356,7 @@ def doctor_encounter_view(request, encounter_id):
             LabResult.objects.create(
                 encounter=encounter,
                 patient=encounter.patient,
+                file = lab.get("file", None),
                 test_type=lab.get("testType", ""),
                 status=lab.get("status", "Pending"),
             )
@@ -419,7 +431,7 @@ def search_patients(request):
 
 def some_view(request):
     # Ensure patient IDs are handled correctly
-    patient = Patient.objects.get(id="12345")  # Example usage
+    patient = Patient.objects.get(id="12345")  # ExampleAdd Diagnosis usage
     
 class PatientView(View):
     template_name = "appointments/patient_form.html"

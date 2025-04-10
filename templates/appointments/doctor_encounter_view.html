@@ -547,7 +547,7 @@ function addPrescription(event) {
     const duration = document.getElementById('prescription-duration').value.trim();
 
     if (name && dosage && duration) {
-        prescriptions.push({ name, dosage, duration, instructions });
+        prescriptions.push({ name, dosage, duration });
         renderPrescriptions();
         document.getElementById('medication-form').reset(); // Clear the form
         updateVisitSummary(); // Update visit summary
@@ -824,8 +824,6 @@ function prepareDataBeforeSubmit() {
     document.getElementById('immunizations-hidden').value = JSON.stringify(immunizations);
     document.getElementById('labresults-hidden').value = JSON.stringify(labResults);
     document.getElementById('documents-hidden').value = JSON.stringify(documents);
-
-    console.log('Lab Results Data:', labResults);
 }
 
 function updateVisitSummary() {

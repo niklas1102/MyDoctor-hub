@@ -284,7 +284,7 @@ def doctor_encounter_view(request, encounter_id):
 
     # Fetch related data
     diagnoses = encounter.diagnoses.all()
-    medications = encounter.medications.all()
+    medications = encounter.prescriptions.all()
     immunizations = encounter.immunizations.all()
     lab_results = encounter.labresults.all()
     documents = encounter.documents.all()

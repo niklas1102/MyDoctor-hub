@@ -294,7 +294,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Medication Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Dosage</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Start Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Prescribing Doctor</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Duration</th>
                     </tr>
@@ -305,7 +304,6 @@
                         <tr>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.medication_name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.dosage }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.encounter.start_time }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.doctor }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ med.duration }}</td>
                         </tr>
@@ -331,8 +329,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Doctor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Start Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">End Time</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Reason</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">notes</th>
 
@@ -344,8 +340,6 @@
                         <tr>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.date }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.doctor }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.start_time }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.end_time }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.reason }}</td>
                             <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ visit.notes }}</td>
                         </tr>

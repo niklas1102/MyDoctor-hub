@@ -10,6 +10,7 @@ services:
       - web_network
     volumes:
       - ./db.sqlite3:/db.sqlite3
+
   nginx:
     container_name: nginx
     restart: always
@@ -22,6 +23,7 @@ services:
       - web_network
     depends_on:
       - appseed-app
+
   redis:
     image: redis:7.0.12
     container_name: redis
@@ -31,6 +33,7 @@ services:
       - 6379:6379
     networks:
       - db_network
+
   celery:
     container_name: celery
     restart: always
@@ -40,9 +43,25 @@ services:
       - db_network
     environment:
       DJANGO_SETTINGS_MODULE: "core.settings"
-    command: "celery -A home worker -l info -B"
+    command: "celery -A appointments worker --loglevel=info"
     depends_on:
       - appseed-app
+      - redis
+
+  celery_beat:
+    container_name: celery_beat
+    restart: always
+    build:
+      context: .
+    networks:
+      - db_network
+    environment:
+      DJANGO_SETTINGS_MODULE: "core.settings"
+    command: "celery -A appointments beat --loglevel=info"
+    depends_on:
+      - appseed-app
+      - redis
+
 networks:
   db_network:
     driver: bridge

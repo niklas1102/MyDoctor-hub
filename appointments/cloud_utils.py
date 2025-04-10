@@ -246,3 +246,7 @@ def delete_document_reference(document_id):
 
 # response = create_patient(resource_data)
 
+# print(response)
+
+
+

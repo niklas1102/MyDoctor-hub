@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from shortuuid.django_fields import ShortUUIDField
+from shortuuid import uuid
 
-# Create your models here.
 
 
 ROLE_CHOICES = (
@@ -11,6 +12,7 @@ ROLE_CHOICES = (
 
 
 class Profile(models.Model):
+    uuid = ShortUUIDField(default=uuid, editable=False, unique=True)  # Add default value
     USER_TYPE_CHOICES = (
         ("doctor", "Doctor"),
         ("patient", "Patient"),

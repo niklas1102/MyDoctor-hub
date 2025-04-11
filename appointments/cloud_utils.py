@@ -2,8 +2,9 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 
+
 SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-SERVICE_ACCOUNT_FILE = '/home/kartik/Documents/shubpy/MyDoctor-hub/mydoctor-ehr-3b0e859c8a7f.json'
+SERVICE_ACCOUNT_FILE = '/home/kartik/Documents/shubpy/MyDoctor-hub/mydoctor-ehr-df5653d350bc.json'
 
 def get_healthcare_service():
     credentials = service_account.Credentials.from_service_account_file(
@@ -17,20 +18,19 @@ LOCATION = 'europe-west3'
 DATASET_ID = 'patient-records'
 FHIR_STORE_ID = 'ehr_store'
 FHIR_BASE_URL = f"projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/fhirStores/{FHIR_STORE_ID}"
-
 # patient crud
 def create_patient(resource_data):
     service = get_healthcare_service()
     request = service.projects().locations().datasets().fhirStores().fhir().create(
         parent=FHIR_BASE_URL,
-        type='Patients',
+        type='Patient',
         body=resource_data
     )
     return request.execute()
 
 def get_patient(patient_id):
     service = get_healthcare_service()
-    name = f"{FHIR_BASE_URL}/Patients/{patient_id}"
+    name = f"{FHIR_BASE_URL}/Patient/{patient_id}"
     request = service.projects().locations().datasets().fhirStores().fhir().read(name=name)
     return request.execute()
 
@@ -235,18 +235,6 @@ def delete_document_reference(document_id):
     request = service.projects().locations().datasets().fhirStores().fhir().delete(name=name)
     return request.execute()
 
-
-
-# resource_data = {
-#             "resourceType": "Patient",
-#             "name": [{"use": "official", "family": "Doe", "given": ["John"]}],
-#             "gender": "male",
-#             "birthDate": "1990-01-01"
-#         }
-
-# response = create_patient(resource_data)
-
-# print(response)
 
 
 

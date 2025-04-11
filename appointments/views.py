@@ -4,6 +4,8 @@ from django import apps, forms
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views import View
+
+from appointments.cloud_utils import create_condition
 from .models import Appointment, MedicalRecords
 from .forms import AppointmentForm, DocumentForm, EncounterForm, ImmunizationForm, LabResultForm, MedicalRecordsForm, PatientForm, PrescriptionForm
 from django.contrib import messages
@@ -248,24 +250,45 @@ def doctor_patient_overview(request, patient_id):
 def doctor_encounter_view(request, encounter_id):
     if encounter_id == 0:
         # Handle new encounter creation
-        patient_id = request.GET.get(
-            "patient_id"
+        patient_uuid = request.GET.get(
+            "patient_uuid"
         )  # Get patient_id from query parameters
-        if patient_id:
-            patient = get_object_or_404(User, id=patient_id, groups__name="Patient")
+        if patient_uuid:
+            patient = get_object_or_404(User, uuid=patient_uuid, groups__name="Patient")
             encounter = Encounter.objects.create(
                 doctor=request.user, patient=patient, status="Active"
             )
+            
+            resource_data = {
+                "resourceType": "Encounter",
+                "status": "active",
+                "period": {"start": str(encounter.date)},
+                "subject": {"reference": f"Patient/{patient.uuid}"},
+                "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
+            }
+            push_encounter_to_cloud.delay(resource_data)
+            
             messages.success(request, "New encounter created successfully.")
             return redirect(
                 reverse("appointments:doctor_encounter_view", args=[encounter.id])
             )
         elif request.method == "POST":
-            patient_id = request.POST.get("patient_id")
-            patient = get_object_or_404(User, id=patient_id, groups__name="Patient")
+            patient_uuid = request.POST.get("patient_uuid")
+            patient = get_object_or_404(User, id=patient_uuid, groups__name="Patient")
             encounter = Encounter.objects.create(
                 doctor=request.user, patient=patient, status="Active"
             )
+            
+            resource_data = {
+                "resourceType": "Encounter",
+                "status": "active",
+                "period": {"start": str(encounter.date)},
+                "subject": {"reference": f"Patient/{patient.uuid}"},
+                "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
+            }
+            push_encounter_to_cloud.delay(resource_data)
+
+
             messages.success(request, "New encounter created successfully.")
             return redirect(
                 reverse("appointments:doctor_encounter_view", args=[encounter.id])
@@ -294,6 +317,17 @@ def doctor_encounter_view(request, encounter_id):
         notes = request.POST.get("notes", "").strip()
         encounter.notes = notes if notes else None  # Avoid empty strings
         encounter.save()  # Save the updated notes to the database
+        
+        updated_data = {
+            "resourceType": "Encounter",
+            "status": encounter.status,
+            "period": {"start": str(encounter.date)},
+            "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+            "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
+            "notes": encounter.notes,
+        }
+        update_encounter_in_cloud.delay(encounter.id, updated_data)
+        
         messages.success(request, "Notes saved successfully.")
         return redirect(
             reverse("appointments:doctor_encounter_view", args=[encounter.id])
@@ -327,56 +361,108 @@ def doctor_encounter_view(request, encounter_id):
                 dosage=p.get("dosage", ""),
                 duration=p.get("duration", ""),
             )
+            # Push prescription to Google Cloud
+            resource_data = {
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "medicationCodeableConcept": {"text": Prescription.medication_name},
+                "subject": {"reference": f"Patient/{Prescription.patient.uuid}"},
+                "encounter": {"reference": f"Encounter/{Prescription.encounter.id}"},
+                "dosageInstruction": [{"text": f"{Prescription.dosage}, {Prescription.duration}"}],
+                "requester": {"reference": f"Practitioner/{Prescription.doctor.id}"},
+            }
+            push_prescription_to_cloud.delay(resource_data)
+            
         
         # Create Diagnosis entries
         for d in diagnoses_data:
-            Diagnosis.objects.create(encounter=encounter, description=d)
+            diagnosis = Diagnosis.objects.create(encounter=encounter, description=d)
+            # Push diagnosis to Google Cloud
+            resource_data = {
+                "resourceType": "Condition",
+                "code": {"text": diagnosis.description},
+                "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+                "encounter": {"reference": f"Encounter/{encounter.id}"},
+            }
+            create_condition.delay(resource_data)
 
         # Create Medication entries
         for m in meds_data:
-            Medication.objects.create(
+            medication = Medication.objects.create(
                 encounter=encounter,
                 name=m.get("name", ""),
                 dosage=m.get("dosage", ""),
                 duration=m.get("duration", ""),
             )
+            # Push medication to Google Cloud
+            resource_data = {
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "medicationCodeableConcept": {"text": medication.name},
+                "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+                "encounter": {"reference": f"Encounter/{encounter.id}"},
+                "dosageInstruction": [{"text": f"{medication.dosage}, {medication.duration}"}],
+            }
+            push_prescription_to_cloud.delay(resource_data)
 
-        # Create Immunizations
         for i in imms_data:
-            Immunization.objects.create(
+            immunization = Immunization.objects.create(
                 encounter=encounter,
                 name=i.get("name", ""),
                 date=i.get("date", ""),
                 dose=i.get("dose", ""),
                 status=i.get("status", ""),
             )
+            # Push immunization to Google Cloud
+            resource_data = {
+                "resourceType": "Immunization",
+                "status": immunization.status.lower(),
+                "vaccineCode": {"text": immunization.name},
+                "occurrenceDateTime": str(immunization.date),
+                "doseQuantity": {"text": immunization.dose},
+                "encounter": {"reference": f"Encounter/{encounter.id}"},
+                "patient": {"reference": f"Patient/{encounter.patient.uuid}"},
+            }
+            push_immunization_to_cloud.delay(resource_data)
 
         # Create LabResults
         for lab in labs_data:
-            LabResult.objects.create(
+            lab_result = LabResult.objects.create(
                 encounter=encounter,
                 patient=encounter.patient,
-                file = lab.get("file", None),
+                file=lab.get("file", None),
                 test_type=lab.get("testType", ""),
                 status=lab.get("status", "Pending"),
             )
+            # Push lab result to Google Cloud
+            resource_data = {
+                "resourceType": "DiagnosticReport",
+                "status": lab_result.status,
+                "subject": {"reference": f"Patient/{lab_result.patient.uuid}"},
+                "encounter": {"reference": f"Encounter/{lab_result.encounter.id}"},
+                "code": {"text": lab_result.test_type},
+                "presentedForm": [{"url": lab_result.file.url if lab_result.file else ""}],
+            }
+            push_lab_result_to_cloud.delay(resource_data)
 
         # Create Documents
         for doc in docs_data:
-            Document.objects.create(
+            document = Document.objects.create(
                 encounter=encounter,
                 patient=encounter.patient,
                 title=doc.get("title", ""),
                 doc_type=doc.get("type", ""),
             )
-
-        # Mark encounter as closed
-        encounter.status = "Closed"
-        encounter.save()
-        messages.success(request, "The visit has been finalized successfully.")
-        return redirect(
-            reverse("appointments:doctor_patient_overview", args=[encounter.patient.id])
-        )
+            # Push document to Google Cloud
+            resource_data = {
+                "resourceType": "DocumentReference",
+                "status": "current",
+                "type": {"text": document.doc_type},
+                "subject": {"reference": f"Patient/{document.patient.uuid}"},
+                "context": {"encounter": {"reference": f"Encounter/{document.encounter.id}"}},
+                "content": [{"attachment": {"url": document.file.url if document.file else "", "title": document.title}}],
+            }
+            push_document_to_cloud.delay(resource_data)
 
     context = {
         "encounter": encounter,
@@ -422,9 +508,9 @@ def search_patients(request):
             & (
                 Q(first_name__icontains=query)
                 | Q(last_name__icontains=query)
-                | Q(id__icontains=query)
-            )  # Properly close parentheses here
-        ).values("id", "first_name", "last_name")
+                | Q(uuid__icontains=query)  # Use uuid instead of id
+            )
+        ).values("uuid", "first_name", "last_name")  # Return uuid instead of id
         return JsonResponse(list(patients), safe=False)
     return JsonResponse([], safe=False)
 
@@ -432,415 +518,3 @@ def search_patients(request):
 def some_view(request):
     # Ensure patient IDs are handled correctly
     patient = Patient.objects.get(id="12345")  # ExampleAdd Diagnosis usage
-    
-class PatientView(View):
-    template_name = "appointments/patient_form.html"
-    
-    def get(self, request, patient_id=None):
-        if patient_id:
-            # Update or view a specific patient
-            patient = get_object_or_404(Patient, id=patient_id)
-            form = PatientForm(instance=patient)
-            return render(request, self.template_name, {"form": form, "patient": patient})
-        else:
-            # List all patients
-            patients = Patient.objects.all()
-            return render(request, "appointments/patient_list.html", {"patients": patients})
-
-    def posts(self,request,patient_id = None):
-        if patient_id:
-            patient = get_object_or_404(Patient, id=patient_id)
-            form = PatientForm(request.POST, instance=patient)
-            if form.is_valid():
-                patient = form.save()
-                updated_data = {
-                    "resourceType": "Patient",
-                    "name": [{"use": "official", "family": patient.full_name.split()[-1], "given": patient.full_name.split()[:-1]}],
-                    "gender": patient.gender,
-                    "birthDate": str(patient.dob),
-                    "telecom": [{"system": "phone", "value": patient.contact}],
-                }
-                update_patient_in_cloud.delay(patient.id, updated_data)
-                messages.success(request, "Patient updated successfully.")
-                return redirect("patient_list")
-        else:               
-            form = PatientForm(request.POST)
-            if form.is_valid():
-                patient = form.save()
-                resource_data = {
-                    "resourceType": "Patient",
-                    "name": [{"use": "official", "family": patient.full_name.split()[-1], "given": patient.full_name.split()[:-1]}],
-                    "gender": patient.gender,
-                    "birthDate": str(patient.dob),
-                    "telecom": [{"system": "phone", "value": patient.contact}],
-                }
-                push_patient_to_cloud.delay(resource_data)
-                messages.success(request, "Patient created successfully!")
-                return redirect("patient_list")
-        return render(request, self.template_name, {"form": form})
-    
-    def delete(self, request, patient_id):
-        patient = get_object_or_404(Patient, id=patient_id)
-        patient.delete()
-        delete_patient_from_cloud.delay(patient_id)
-        messages.success(request, "Patient deleted successfully!")
-        return JsonResponse({"message": "Patient deleted successfully!"})
-            
-
-class EncounterView(View):
-    template_name = "appointments/encounter_form.html"
-
-    def get(self, request, encounter_id=None):
-        if encounter_id:
-            encounter = get_object_or_404(Encounter, id=encounter_id)
-            form = EncounterForm(instance=encounter)
-            return render(request, self.template_name, {"form": form, "encounter": encounter})
-        else:
-            encounters = Encounter.objects.all()
-            return render(request, "appointments/encounter_list.html", {"encounters": encounters})
-
-    def post(self, request, encounter_id=None):
-        if encounter_id:
-            encounter = get_object_or_404(Encounter, id=encounter_id)
-            form = EncounterForm(request.POST, instance=encounter)
-            if form.is_valid():
-                encounter = form.save()
-                updated_data = {
-                    "resourceType": "Encounter",
-                    "status": encounter.status,
-                    "period": {
-                        "start": str(encounter.start_time),
-                        "end": str(encounter.end_time),
-                    },
-                    "subject": {"reference": f"Patient/{encounter.patient.id}"},
-                    "participant": [{"individual": {"reference": f"Practitioner/{encounter.doctor.id}"}}],
-                    "notes": encounter.notes,
-                }
-                update_encounter_in_cloud.delay(encounter.id, updated_data)
-                messages.success(request, "Encounter updated successfully!")
-                return redirect("encounter_list")
-        else:
-            form = EncounterForm(request.POST)
-            if form.is_valid():
-                encounter = form.save()
-                resource_data = {
-                    "resourceType": "Encounter",
-                    "status": encounter.status,
-                    "period": {
-                        "start": str(encounter.start_time),
-                        "end": str(encounter.end_time),
-                    },
-                    "subject": {"reference": f"Patient/{encounter.patient.id}"},
-                    "participant": [{"individual": {"reference": f"Practitioner/{encounter.doctor.id}"}}],
-                    "notes": encounter.notes,
-                }
-                push_encounter_to_cloud.delay(resource_data)
-                messages.success(request, "Encounter created successfully!")
-                return redirect("encounter_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, encounter_id):
-        encounter = get_object_or_404(Encounter, id=encounter_id)
-        encounter.delete()
-        delete_encounter_from_cloud.delay(encounter_id)
-        messages.success(request, "Encounter deleted successfully!")
-        return JsonResponse({"message": "Encounter deleted successfully!"})
-    
-class LabResultView(View):
-    template_name = "appointments/lab_result_form.html"
-
-    def get(self, request, lab_result_id=None):
-        if lab_result_id:
-            lab_result = get_object_or_404(LabResult, id=lab_result_id)
-            form = LabResultForm(instance=lab_result)
-            return render(request, self.template_name, {"form": form, "lab_result": lab_result})
-        else:
-            # List all lab results
-            lab_results = LabResult.objects.all()
-            return render(request, "appointments/lab_result_list.html", {"lab_results": lab_results})
-
-    def post(self, request, lab_result_id=None):
-        if lab_result_id:
-            # Update an existing lab result
-            lab_result = get_object_or_404(LabResult, id=lab_result_id)
-            form = LabResultForm(request.POST, request.FILES, instance=lab_result)
-            if form.is_valid():
-                lab_result = form.save()
-                # Prepare updated data for Google Cloud
-                updated_data = {
-                    "resourceType": "DiagnosticReport",
-                    "status": lab_result.status,
-                    "subject": {"reference": f"Patient/{lab_result.patient.id}"},
-                    "encounter": {"reference": f"Encounter/{lab_result.encounter.id}"},
-                    "code": {"text": lab_result.test_type},
-                    "presentedForm": [{"url": lab_result.file.url}],
-                }
-                # Update in Google Cloud in the background
-                update_lab_result_in_cloud.delay(lab_result.id, updated_data)
-                messages.success(request, "Lab result updated successfully!")
-                return redirect("lab_result_list")
-        else:
-            # Create a new lab result
-            form = LabResultForm(request.POST, request.FILES)
-            if form.is_valid():
-                lab_result = form.save()
-                # Prepare data for Google Cloud
-                resource_data = {
-                    "resourceType": "DiagnosticReport",
-                    "status": lab_result.status,
-                    "subject": {"reference": f"Patient/{lab_result.patient.id}"},
-                    "encounter": {"reference": f"Encounter/{lab_result.encounter.id}"},
-                    "code": {"text": lab_result.test_type},
-                    "presentedForm": [{"url": lab_result.file.url}],
-                }
-                # Push to Google Cloud in the background
-                push_lab_result_to_cloud.delay(resource_data)
-                messages.success(request, "Lab result created successfully!")
-                return redirect("lab_result_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, lab_result_id):
-        lab_result = get_object_or_404(LabResult, id=lab_result_id)
-        lab_result.delete()
-        # Delete from Google Cloud in the background
-        delete_lab_result_from_cloud.delay(lab_result_id)
-        messages.success(request, "Lab result deleted successfully!")
-        return JsonResponse({"message": "Lab result deleted successfully!"})
-    
-class PrescriptionView(View):
-    template_name = "#"
-
-    def get(self, request, prescription_id=None):
-        """Handle GET requests for listing, creating, or updating prescriptions."""
-        if prescription_id:
-            # Update or view a specific prescription
-            prescription = get_object_or_404(Prescription, id=prescription_id)
-            form = PrescriptionForm(instance=prescription)
-            return render(request, self.template_name, {"form": form, "prescription": prescription})
-        else:
-            # List all prescriptions
-            prescriptions = Prescription.objects.all()
-            return render(request, "appointments/prescription_list.html", {"prescriptions": prescriptions})
-
-    def post(self, request, prescription_id=None):
-        """Handle POST requests for creating or updating prescriptions."""
-        if prescription_id:
-            # Update an existing prescription
-            prescription = get_object_or_404(Prescription, id=prescription_id)
-            form = PrescriptionForm(request.POST, instance=prescription)
-            if form.is_valid():
-                prescription = form.save()
-                # Prepare updated data for Google Cloud
-                updated_data = {
-                    "resourceType": "MedicationRequest",
-                    "status": "active",
-                    "medicationCodeableConcept": {"text": prescription.medication_name},
-                    "subject": {"reference": f"Patient/{prescription.patient.id}"},
-                    "encounter": {"reference": f"Encounter/{prescription.encounter.id}"},
-                    "dosageInstruction": [{"text": f"{prescription.dosage}, {prescription.duration}"}],
-                    "requester": {"reference": f"Practitioner/{prescription.doctor.id}"},
-                }
-                # Update in Google Cloud in the background
-                update_prescription_in_cloud.delay(prescription.id, updated_data)
-                messages.success(request, "Prescription updated successfully!")
-                return redirect("prescription_list")
-        else:
-            # Create a new prescription
-            form = PrescriptionForm(request.POST)
-            if form.is_valid():
-                prescription = form.save()
-                # Prepare data for Google Cloud
-                resource_data = {
-                    "resourceType": "MedicationRequest",
-                    "status": "active",
-                    "medicationCodeableConcept": {"text": prescription.medication_name},
-                    "subject": {"reference": f"Patient/{prescription.patient.id}"},
-                    "encounter": {"reference": f"Encounter/{prescription.encounter.id}"},
-                    "dosageInstruction": [{"text": f"{prescription.dosage}, {prescription.duration}"}],
-                    "requester": {"reference": f"Practitioner/{prescription.doctor.id}"},
-                }
-                # Push to Google Cloud in the background
-                push_prescription_to_cloud.delay(resource_data)
-                messages.success(request, "Prescription created successfully!")
-                return redirect("prescription_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, prescription_id):
-        """Handle DELETE requests for deleting a prescription."""
-        prescription = get_object_or_404(Prescription, id=prescription_id)
-        prescription.delete()
-        # Delete from Google Cloud in the background
-        delete_prescription_from_cloud.delay(prescription_id)
-        messages.success(request, "Prescription deleted successfully!")
-        return JsonResponse({"message": "Prescription deleted successfully!"})
-
-class ImmunizationView(View):
-    template_name = "appointments/immunization_form.html"
-
-    def get(self, request, immunization_id=None):
-        """Handle GET requests for listing, creating, or updating immunizations."""
-        if immunization_id:
-            # Update or view a specific immunization
-            immunization = get_object_or_404(Immunization, id=immunization_id)
-            form = ImmunizationForm(instance=immunization)
-            return render(request, self.template_name, {"form": form, "immunization": immunization})
-        else:
-            # List all immunizations
-            immunizations = Immunization.objects.all()
-            return render(request, "appointments/immunization_list.html", {"immunizations": immunizations})
-
-    def post(self, request, immunization_id=None):
-        """Handle POST requests for creating or updating immunizations."""
-        if immunization_id:
-            # Update an existing immunization
-            immunization = get_object_or_404(Immunization, id=immunization_id)
-            form = ImmunizationForm(request.POST, instance=immunization)
-            if form.is_valid():
-                immunization = form.save()
-                # Prepare updated data for Google Cloud
-                updated_data = {
-                    "resourceType": "Immunization",
-                    "status": immunization.status.lower(),
-                    "vaccineCode": {"text": immunization.name},
-                    "occurrenceDateTime": str(immunization.date),
-                    "doseQuantity": {"text": immunization.dose},
-                    "encounter": {"reference": f"Encounter/{immunization.encounter.id}"},
-                }
-                # Update in Google Cloud in the background
-                update_immunization_in_cloud.delay(immunization.id, updated_data)
-                messages.success(request, "Immunization updated successfully!")
-                return redirect("immunization_list")
-        else:
-            # Create a new immunization
-            form = ImmunizationForm(request.POST)
-            if form.is_valid():
-                immunization = form.save()
-                # Prepare data for Google Cloud
-                resource_data = {
-                    "resourceType": "Immunization",
-                    "status": immunization.status.lower(),
-                    "vaccineCode": {"text": immunization.name},
-                    "occurrenceDateTime": str(immunization.date),
-                    "doseQuantity": {"text": immunization.dose},
-                    "encounter": {"reference": f"Encounter/{immunization.encounter.id}"},
-                }
-                # Push to Google Cloud in the background
-                push_immunization_to_cloud.delay(resource_data)
-                messages.success(request, "Immunization created successfully!")
-                return redirect("immunization_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, immunization_id):
-        """Handle DELETE requests for deleting an immunization."""
-        immunization = get_object_or_404(Immunization, id=immunization_id)
-        immunization.delete()
-        # Delete from Google Cloud in the background
-        delete_immunization_from_cloud.delay(immunization_id)
-        messages.success(request, "Immunization deleted successfully!")
-        return JsonResponse({"message": "Immunization deleted successfully!"})
-    
-class DocumentView(View):
-    template_name = "#"
-
-    def get(self, request, document_id=None):
-        """Handle GET requests for listing, creating, or updating documents."""
-        if document_id:
-            # Update or view a specific document
-            document = get_object_or_404(Document, id=document_id)
-            form = DocumentForm(instance=document)
-            return render(request, self.template_name, {"form": form, "document": document})
-        else:
-            # List all documents
-            documents = Document.objects.all()
-            return render(request, "appointments/document_list.html", {"documents": documents})
-
-    def post(self, request, document_id=None):
-        """Handle POST requests for creating or updating documents."""
-        if document_id:
-            # Update an existing document
-            document = get_object_or_404(Document, id=document_id)
-            form = DocumentForm(request.POST, request.FILES, instance=document)
-            if form.is_valid():
-                document = form.save()
-                # Prepare updated data for Google Cloud
-                updated_data = {
-                    "resourceType": "DocumentReference",
-                    "status": "current",
-                    "type": {"text": document.doc_type},
-                    "subject": {"reference": f"Patient/{document.patient.id}"},
-                    "context": {"encounter": {"reference": f"Encounter/{document.encounter.id}"}},
-                    "content": [{"attachment": {"url": document.file.url, "title": document.title}}],
-                }
-                # Update in Google Cloud in the background
-                update_document_in_cloud.delay(document.id, updated_data)
-                messages.success(request, "Document updated successfully!")
-                return redirect("document_list")
-        else:
-            # Create a new document
-            form = DocumentForm(request.POST, request.FILES)
-            if form.is_valid():
-                document = form.save()
-                # Prepare data for Google Cloud
-                resource_data = {
-                    "resourceType": "DocumentReference",
-                    "status": "current",
-                    "type": {"text": document.doc_type},
-                    "subject": {"reference": f"Patient/{document.patient.id}"},
-                    "context": {"encounter": {"reference": f"Encounter/{document.encounter.id}"}},
-                    "content": [{"attachment": {"url": document.file.url, "title": document.title}}],
-                }
-                # Push to Google Cloud in the background
-                push_document_to_cloud.delay(resource_data)
-                messages.success(request, "Document created successfully!")
-                return redirect("document_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, document_id):
-        """Handle DELETE requests for deleting a document."""
-        document = get_object_or_404(Document, id=document_id)
-        document.delete()
-        # Delete from Google Cloud in the background
-        delete_document_from_cloud.delay(document_id)
-        messages.success(request, "Document deleted successfully!")
-        return JsonResponse({"message": "Document deleted successfully!"})
-    
-class MedicalRecordsView(View):
-    template_name = "#"
-
-    def get(self, request, record_id=None):
-        """Handle GET requests for listing, creating, or updating medical records."""
-        if record_id:
-            # Update or view a specific medical record
-            record = get_object_or_404(MedicalRecords, id=record_id)
-            form = MedicalRecordsForm(instance=record)
-            return render(request, self.template_name, {"form": form, "record": record})
-        else:
-            # List all medical records
-            records = MedicalRecords.objects.all()
-            return render(request, "appointments/medical_records_list.html", {"records": records})
-
-    def post(self, request, record_id=None):
-        """Handle POST requests for creating or updating medical records."""
-        if record_id:
-            # Update an existing medical record
-            record = get_object_or_404(MedicalRecords, id=record_id)
-            form = MedicalRecordsForm(request.POST, request.FILES, instance=record)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Medical record updated successfully!")
-                return redirect("medical_records_list")
-        else:
-            # Create a new medical record
-            form = MedicalRecordsForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Medical record created successfully!")
-                return redirect("medical_records_list")
-        return render(request, self.template_name, {"form": form})
-
-    def delete(self, request, record_id):
-        """Handle DELETE requests for deleting a medical record."""
-        record = get_object_or_404(MedicalRecords, id=record_id)
-        record.delete()
-        messages.success(request, "Medical record deleted successfully!")
-        return JsonResponse({"message": "Medical record deleted successfully!"})

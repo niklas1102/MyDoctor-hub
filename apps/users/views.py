@@ -8,6 +8,7 @@ from django.contrib.auth.views import (
 )
 from django.views.generic import CreateView
 from appointments.models import Encounter, Immunization, LabResult, Prescription, MedicalRecords
+from appointments.tasks import push_patient_to_cloud
 from apps.common.models import Product
 from apps.users.models import Profile, Document  # Move the import to the top
 from apps.users.forms import (
@@ -57,6 +58,20 @@ class SignUpView(CreateView):
     def form_valid(self, form):
         user = form.save()  # Save the new user
         login(self.request, user)  # Log in the user immediately
+    
+        if user.groups.filter(name="Patient").exists():
+            # Prepare the FHIR resource data
+            resource_data = {
+                "resourceType": "Patient",
+                "id": str(user.uuid),  # Use the UUID as the FHIR ID
+                "name": [{"use": "official", "family": user.last_name, "given": [user.first_name]}],
+                "gender": user.profile.gender if hasattr(user, "profile") else "unknown",
+                "birthDate": user.profile.birth_date.isoformat() if hasattr(user, "profile") and user.profile.birth_date else None,
+            }
+
+            # Push the patient data to the cloud asynchronously
+            push_patient_to_cloud.delay(resource_data)
+
         return super().form_valid(form)
 
     def form_invalid(self, form):

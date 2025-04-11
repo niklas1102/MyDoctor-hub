@@ -23,7 +23,7 @@
    pip install -r requirements.txt
 
 4. **Start Celery Worker**:
-    celery -A MyDoctor-hub worker --loglevel=info
+    celery -A appointments worker --loglevel=info
 
 5. **check Celery Status**:
     sudo service redis status

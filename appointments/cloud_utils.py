@@ -1,11 +1,14 @@
+import os
+from dotenv import load_dotenv
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+load_dotenv()
 
 
 SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-SERVICE_ACCOUNT_FILE = '/home/kartik/Documents/shubpy/MyDoctor-hub/mydoctor-ehr-df5653d350bc.json'
-
+SERVICE_ACCOUNT_FILE = os.getenv('SERVICE_ACCOUNT_FILE', '/path/to/default/service-account.json')
+print(SERVICE_ACCOUNT_FILE)
 def get_healthcare_service():
     credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES

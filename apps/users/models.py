@@ -17,7 +17,7 @@ class Profile(models.Model):
         ("doctor", "Doctor"),
         ("patient", "Patient"),
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     user_type = models.CharField(
         max_length=10, choices=USER_TYPE_CHOICES, default="patient"
     )

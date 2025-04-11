@@ -4,10 +4,10 @@ from django import apps, forms
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views import View
-
 from appointments.cloud_utils import create_condition
+from apps.users.models import Profile
 from .models import Appointment, MedicalRecords
-from .forms import AppointmentForm, DocumentForm, EncounterForm, ImmunizationForm, LabResultForm, MedicalRecordsForm, PatientForm, PrescriptionForm
+from .forms import AppointmentForm
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
@@ -250,11 +250,11 @@ def doctor_patient_overview(request, patient_id):
 def doctor_encounter_view(request, encounter_id):
     if encounter_id == 0:
         # Handle new encounter creation
-        patient_uuid = request.GET.get(
-            "patient_uuid"
+        patient_id = request.GET.get(
+            "patient_id"
         )  # Get patient_id from query parameters
-        if patient_uuid:
-            patient = get_object_or_404(User, uuid=patient_uuid, groups__name="Patient")
+        if patient_id:
+            patient = get_object_or_404(User, id=patient_id, groups__name="Patient")
             encounter = Encounter.objects.create(
                 doctor=request.user, patient=patient, status="Active"
             )
@@ -263,8 +263,8 @@ def doctor_encounter_view(request, encounter_id):
                 "resourceType": "Encounter",
                 "status": "active",
                 "period": {"start": str(encounter.date)},
-                "subject": {"reference": f"Patient/{patient.uuid}"},
-                "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
+                "subject": {"reference": f"Patient/{patient.profile.uuid}"},
+                "participant": [{"individual": {"reference": f"Practitioner/{request.user.profile.uuid}"}}],
             }
             push_encounter_to_cloud.delay(resource_data)
             
@@ -283,7 +283,7 @@ def doctor_encounter_view(request, encounter_id):
                 "resourceType": "Encounter",
                 "status": "active",
                 "period": {"start": str(encounter.date)},
-                "subject": {"reference": f"Patient/{patient.uuid}"},
+                "subject": {"reference": f"Patient/{patient.profile.uuid}"},
                 "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
             }
             push_encounter_to_cloud.delay(resource_data)
@@ -322,7 +322,7 @@ def doctor_encounter_view(request, encounter_id):
             "resourceType": "Encounter",
             "status": encounter.status,
             "period": {"start": str(encounter.date)},
-            "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+            "subject": {"reference": f"Patient/{encounter.patient.profile.uuid}"},
             "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
             "notes": encounter.notes,
         }
@@ -353,7 +353,7 @@ def doctor_encounter_view(request, encounter_id):
         prescriptions_data = json.loads(request.POST.get("prescriptions_data", "[]"))
 
         for p in prescriptions_data:
-            Prescription.objects.create(
+            prescription = Prescription.objects.create(
                 encounter=encounter,
                 patient=encounter.patient,
                 doctor=request.user,
@@ -365,11 +365,11 @@ def doctor_encounter_view(request, encounter_id):
             resource_data = {
                 "resourceType": "MedicationRequest",
                 "status": "active",
-                "medicationCodeableConcept": {"text": Prescription.medication_name},
-                "subject": {"reference": f"Patient/{Prescription.patient.uuid}"},
-                "encounter": {"reference": f"Encounter/{Prescription.encounter.id}"},
-                "dosageInstruction": [{"text": f"{Prescription.dosage}, {Prescription.duration}"}],
-                "requester": {"reference": f"Practitioner/{Prescription.doctor.id}"},
+                "medicationCodeableConcept": {"text": prescription.medication_name},
+                "subject": {"reference": f"Patient/{Profile.objects.get(user=prescription.patient).uuid}"},
+                "encounter": {"reference": f"Encounter/{prescription.encounter.id}"},
+                "dosageInstruction": [{"text": f"{prescription.dosage}, {prescription.duration}"}],
+                "requester": {"reference": f"Practitioner/{prescription.doctor.profile.uuid}"},
             }
             push_prescription_to_cloud.delay(resource_data)
             
@@ -381,7 +381,7 @@ def doctor_encounter_view(request, encounter_id):
             resource_data = {
                 "resourceType": "Condition",
                 "code": {"text": diagnosis.description},
-                "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+                "subject": {"reference": f"Patient/{encounter.patient.profile.uuid}"},
                 "encounter": {"reference": f"Encounter/{encounter.id}"},
             }
             create_condition.delay(resource_data)
@@ -399,7 +399,7 @@ def doctor_encounter_view(request, encounter_id):
                 "resourceType": "MedicationRequest",
                 "status": "active",
                 "medicationCodeableConcept": {"text": medication.name},
-                "subject": {"reference": f"Patient/{encounter.patient.uuid}"},
+                "subject": {"reference": f"Patient/{encounter.patient.profile.uuid}"},
                 "encounter": {"reference": f"Encounter/{encounter.id}"},
                 "dosageInstruction": [{"text": f"{medication.dosage}, {medication.duration}"}],
             }
@@ -421,7 +421,7 @@ def doctor_encounter_view(request, encounter_id):
                 "occurrenceDateTime": str(immunization.date),
                 "doseQuantity": {"text": immunization.dose},
                 "encounter": {"reference": f"Encounter/{encounter.id}"},
-                "patient": {"reference": f"Patient/{encounter.patient.uuid}"},
+                "patient": {"reference": f"Patient/{encounter.patient.profile.uuid}"},
             }
             push_immunization_to_cloud.delay(resource_data)
 
@@ -438,7 +438,7 @@ def doctor_encounter_view(request, encounter_id):
             resource_data = {
                 "resourceType": "DiagnosticReport",
                 "status": lab_result.status,
-                "subject": {"reference": f"Patient/{lab_result.patient.uuid}"},
+                "subject": {"reference": f"Patient/{lab_result.patient.profile.uuid}"},
                 "encounter": {"reference": f"Encounter/{lab_result.encounter.id}"},
                 "code": {"text": lab_result.test_type},
                 "presentedForm": [{"url": lab_result.file.url if lab_result.file else ""}],
@@ -458,7 +458,7 @@ def doctor_encounter_view(request, encounter_id):
                 "resourceType": "DocumentReference",
                 "status": "current",
                 "type": {"text": document.doc_type},
-                "subject": {"reference": f"Patient/{document.patient.uuid}"},
+                "subject": {"reference": f"Patient/{document.patient.profile.uuid}"},
                 "context": {"encounter": {"reference": f"Encounter/{document.encounter.id}"}},
                 "content": [{"attachment": {"url": document.file.url if document.file else "", "title": document.title}}],
             }

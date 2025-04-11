@@ -1,8 +1,3 @@
-# MyDoctor-Hub
-
-This project uses **Celery** for asynchronous task processing. Below are the steps to set up and run Celery along with Redis as the message broker.
-
----
 
 ## **Prerequisites**
 1. **Python**: Ensure Python is installed on your system.
@@ -35,3 +30,6 @@ This project uses **Celery** for asynchronous task processing. Below are the ste
 
 6. **Restart Celery Status**:
     sudo service redis restart
+
+7. **Configure SERVICE_ACCOUNT_FILE In .env**
+

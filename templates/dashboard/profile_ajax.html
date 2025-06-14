@@ -1,0 +1,671 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block messages %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="flex items-center p-4 text-sm rounded-lg dark:bg-gray-800 {{message.tags}}" role="alert">     
+            <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+            </svg>
+            <span class="sr-only">Info</span>
+            <div>{{ message }}</div>
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock messages %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Profile Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div class="flex items-center space-x-4">
+            <div class="relative group">
+                <form method="post" action="{% url 'upload_avatar' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label for="avatar" class="relative block w-16 h-16 rounded-full overflow-hidden shadow-md cursor-pointer">
+                        {% if request.user.profile.avatar %}
+                            <img class="w-full h-full object-cover" src="{{ request.user.profile.avatar.url }}" alt="Profile picture">
+                        {% else %}
+                            <img class="w-full h-full object-cover" src="{% static 'dist/img/default-user.png' %}" alt="Profile picture">
+                        {% endif %}
+                        <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                    </label>
+                    <input onchange="this.form.submit()" type="file" name="avatar" id="avatar" class="hidden">
+                </form>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ request.user.get_full_name }}</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ request.user.email }}</p>
+            </div>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="openPasswordModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                Change Password
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column - General Information -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- General Information Card -->
+            <div class="bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">General Information</h2>
+                </div>
+                <div class="p-6">
+                    <form id="generalInfoForm" method="post">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <!-- First Name -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">First Name</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="first_name">{{ request.user.first_name }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Last Name -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Last Name</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="last_name">{{ request.user.last_name }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="email">{{ request.user.email }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Mobile Number -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Mobile Number</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="mobile_number">{{ profile.mobile_number|default:"Not provided" }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Address -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="address">{{ profile.address|default:"Not provided" }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- City -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">City</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="city">{{ profile.city|default:"Not provided" }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if is_patient %}
+            <!-- Medical Information Card -->
+            <div class="bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Medical Information</h2>
+                </div>
+                <div class="p-6">
+                    <form id="medicalInfoForm" method="post">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <!-- Age -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Age</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="age">{{ profile.age|default:"Not provided" }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Gender -->
+                            <div class="flex items-center justify-between group">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Gender</label>
+                                    <div class="mt-1 text-sm text-gray-900 dark:text-white editable-field" data-field="gender">{{ profile.get_gender_display|default:"Not provided" }}</div>
+                                </div>
+                                <button type="button" class="edit-btn opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Pre-existing Conditions -->
+                            <div class="flex flex-col">
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Pre-existing Conditions</label>
+                                <div class="flex flex-wrap gap-2 mb-2" id="conditions-container">
+                                    {% for condition in profile.pre_existing_conditions_list %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ condition }}
+                                            <button type="button" class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none" data-condition="{{ condition }}">
+                                                <span class="sr-only">Remove</span>
+                                                <svg class="w-2 h-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                                                    <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7"/>
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">No conditions added</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="relative">
+                                    <input type="text" id="condition-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Add a condition">
+                                    <div id="condition-suggestions" class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 hidden">
+                                        <!-- Suggestions will appear here -->
+                                    </div>
+                                </div>
+                                <input type="hidden" name="pre_existing_conditions" id="pre_existing_conditions" value="{{ profile.pre_existing_conditions }}">
+                            </div>
+                            
+                            <!-- Budget -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Budget Preference</label>
+                                <div class="mt-2">
+                                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                        <span>Low</span>
+                                        <span>Medium</span>
+                                        <span>High</span>
+                                    </div>
+                                    <input type="range" id="budget-range" name="budget" min="0" max="4" value="{{ profile.budget|default:'2' }}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="text-center text-sm mt-1 text-gray-700 dark:text-gray-300">
+                                        Current: <span id="budget-value">{{ profile.get_budget_display|default:"Medium" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Additional Information -->
+        <div class="space-y-6">
+            <!-- Quick Actions Card -->
+            <div class="bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <a href="{% url 'upload_document' %}" class="flex items-center space-x-3 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <span>Upload Document</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span>View Medical Records</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>View Prescriptions</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% if past_visits %}
+                            {% for visit in past_visits|slice:":3" %}
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 mt-0.5">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Visit with Dr. {{ visit.doctor }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ visit.date }} - {{ visit.reason }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400">No recent activity</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div id="passwordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl dark:bg-gray-800 w-full max-w-md">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Change Password</h3>
+                <button onclick="closePasswordModal()" class="text-gray-400 hover:text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="passwordForm" method="post" action="{% url 'change_password' %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    
+                    <div>
+                        <label for="new_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                        <div class="relative">
+                            <input type="password" id="new_password" name="new_password" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <button type="button" onclick="togglePasswordVisibility('new_password')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
+                        <div class="relative">
+                            <input type="password" id="confirm_password" name="confirm_password" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <button type="button" onclick="togglePasswordVisibility('confirm_password')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .editable-field {
+        min-height: 24px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    
+    .editable-field:hover {
+        background-color: #f3f4f6;
+    }
+    
+    .editable-field.editing {
+        background-color: white;
+        border: 1px solid #d1d5db;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .edit-btn {
+        transition: all 0.2s;
+    }
+    
+    .group:hover .edit-btn {
+        opacity: 1;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inline editing functionality
+    const editButtons = document.querySelectorAll('.edit-btn');
+    
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const container = this.closest('.group');
+            const fieldElement = container.querySelector('.editable-field');
+            const fieldName = fieldElement.getAttribute('data-field');
+            const currentValue = fieldElement.textContent.trim();
+            
+            // Create input based on field type
+            let input;
+            
+            if (fieldName === 'gender') {
+                input = document.createElement('select');
+                input.className = 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm';
+                input.innerHTML = `
+                    <option value="M" ${currentValue === 'Male' ? 'selected' : ''}>Male</option>
+                    <option value="F" ${currentValue === 'Female' ? 'selected' : ''}>Female</option>
+                    <option value="O" ${currentValue === 'Other' ? 'selected' : ''}>Other</option>
+                `;
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm';
+                input.value = currentValue === 'Not provided' ? '' : currentValue;
+            }
+            
+            // Replace text with input
+            fieldElement.innerHTML = '';
+            fieldElement.appendChild(input);
+            fieldElement.classList.add('editing');
+            input.focus();
+            
+            // Save on Enter or Blur
+            const saveField = () => {
+                const newValue = fieldName === 'gender' 
+                    ? input.options[input.selectedIndex].text 
+                    : input.value.trim();
+                
+                // AJAX call to save the field
+                const formData = new FormData();
+                formData.append('field', fieldName);
+                formData.append('value', fieldName === 'gender' ? input.value : newValue);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                
+                fetch('{% url "update_profile_field" %}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fieldElement.textContent = newValue || 'Not provided';
+                        fieldElement.classList.remove('editing');
+                    } else {
+                        alert('Error saving: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving changes');
+                });
+            };
+            
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveField();
+                }
+            });
+            
+            input.addEventListener('blur', saveField);
+        });
+    });
+    
+    // Budget range slider
+    const budgetRange = document.getElementById('budget-range');
+    const budgetValue = document.getElementById('budget-value');
+    const budgetLabels = ['Low', 'Mid Low', 'Medium', 'Mid High', 'High'];
+    
+    if (budgetRange) {
+        budgetRange.addEventListener('input', function() {
+            budgetValue.textContent = budgetLabels[this.value];
+            
+            // Save the value via AJAX
+            const formData = new FormData();
+            formData.append('field', 'budget');
+            formData.append('value', this.value);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch('{% url "update_profile_field" %}', {
+                method: 'POST',
+                body: formData
+            });
+        });
+    }
+    
+    // Pre-existing conditions functionality
+    const conditionInput = document.getElementById('condition-input');
+    const conditionSuggestions = document.getElementById('condition-suggestions');
+    const conditionsContainer = document.getElementById('conditions-container');
+    const hiddenConditionsField = document.getElementById('pre_existing_conditions');
+    
+    if (conditionInput) {
+        const commonConditions = [
+            "Diabetes", "Hypertension", "Asthma", "Arthritis", 
+            "Heart Disease", "High Cholesterol", "Depression",
+            "Anxiety", "Allergies", "Migraines", "Osteoporosis"
+        ];
+        
+        conditionInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            if (query.length < 2) {
+                conditionSuggestions.classList.add('hidden');
+                return;
+            }
+            
+            const filtered = commonConditions.filter(cond => 
+                cond.toLowerCase().includes(query)
+            );
+            
+            conditionSuggestions.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                const item = document.createElement('div');
+                item.className = 'px-4 py-2 text-sm text-gray-700';
+                item.textContent = 'No suggestions found';
+                conditionSuggestions.appendChild(item);
+            } else {
+                filtered.forEach(cond => {
+                    const item = document.createElement('div');
+                    item.className = 'px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer';
+                    item.textContent = cond;
+                    item.addEventListener('click', function() {
+                        addCondition(cond);
+                        conditionInput.value = '';
+                        conditionSuggestions.classList.add('hidden');
+                    });
+                    conditionSuggestions.appendChild(item);
+                });
+            }
+            
+            conditionSuggestions.classList.remove('hidden');
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!conditionInput.contains(e.target) && !conditionSuggestions.contains(e.target)) {
+                conditionSuggestions.classList.add('hidden');
+            }
+        });
+        
+        conditionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                e.preventDefault();
+                addCondition(this.value.trim());
+                this.value = '';
+            }
+        });
+        
+        function addCondition(condition) {
+            // Check if already exists
+            const existingConditions = JSON.parse(hiddenConditionsField.value || '[]');
+            if (existingConditions.includes(condition)) return;
+            
+            // Add to hidden field
+            existingConditions.push(condition);
+            hiddenConditionsField.value = JSON.stringify(existingConditions);
+            
+            // Add to UI
+            const chip = document.createElement('span');
+            chip.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
+            chip.innerHTML = `
+                ${condition}
+                <button type="button" class="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none" data-condition="${condition}">
+                    <span class="sr-only">Remove</span>
+                    <svg class="w-2 h-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                        <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7"/>
+                    </svg>
+                </button>
+            `;
+            
+            conditionsContainer.prepend(chip);
+            
+            // Save via AJAX
+            const formData = new FormData();
+            formData.append('field', 'pre_existing_conditions');
+            formData.append('value', hiddenConditionsField.value);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch('{% url "update_profile_field" %}', {
+                method: 'POST',
+                body: formData
+            });
+        }
+        
+        // Remove condition
+        conditionsContainer.addEventListener('click', function(e) {
+            if (e.target.closest('button[data-condition]')) {
+                const button = e.target.closest('button[data-condition]');
+                const condition = button.getAttribute('data-condition');
+                
+                // Remove from hidden field
+                const existingConditions = JSON.parse(hiddenConditionsField.value || '[]');
+                const updatedConditions = existingConditions.filter(c => c !== condition);
+                hiddenConditionsField.value = JSON.stringify(updatedConditions);
+                
+                // Remove from UI
+                button.closest('span').remove();
+                
+                // If no conditions left, show message
+                if (updatedConditions.length === 0) {
+                    const message = document.createElement('span');
+                    message.className = 'text-sm text-gray-500 dark:text-gray-400';
+                    message.textContent = 'No conditions added';
+                    conditionsContainer.appendChild(message);
+                }
+                
+                const formData = new FormData();
+                formData.append('field', 'pre_existing_conditions');
+                formData.append('value', hiddenConditionsField.value);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                
+                fetch('{% url "update_profile_field" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+        });
+    }
+});
+</script>
+
+<script>
+    // Password Modal Functions
+    function openPasswordModal() {
+        document.getElementById('passwordModal').classList.remove('hidden');
+    }
+    
+    function closePasswordModal() {
+        document.getElementById('passwordModal').classList.add('hidden');
+    }
+    
+    // Toggle password visibility
+    function togglePasswordVisibility(fieldId) {
+        const field = document.getElementById(fieldId);
+        field.type = field.type === 'password' ? 'text' : 'password';
+    }
+    
+    // Handle form submission with AJAX
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Password changed successfully!');
+                closePasswordModal();
+                form.reset();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to change password'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
+    
+    // Close modal when clicking outside
+    document.getElementById('passwordModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePasswordModal();
+        }
+    });
+    </script>
+{% endblock content %}

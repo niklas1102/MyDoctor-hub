@@ -20,18 +20,24 @@
 
 {% block content %}
 
+<style>
+    .tab-button {
+    transition: all 0.2s ease-in-out;
+}
+</style>
+
 {% if is_patient %}
 <div class="p-4 m-6 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
     <div class="px-4 pb-6">
         <!-- Tab Navigation -->
         <nav class="flex flex-wrap sm:flex-nowrap border-b border-gray-200 dark:border-gray-700">
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-user">User settings </button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-records">Medical Records</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-labs">Lab Results</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-medications">Prescription</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-visits">Past Visits</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-immunizations">Immunizations</button>
-            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none" data-tab="tab-documents">Documents</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent active-tab" data-tab="tab-user">User settings</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-records">Medical Records</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-labs">Lab Results</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-medications">Prescription</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-visits">Past Visits</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-immunizations">Immunizations</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none border-b-2 border-transparent" data-tab="tab-documents">Documents</button>
         </nav>
     </div>
     <!-- Tab Content -->
@@ -101,23 +107,27 @@
                         </div>
                     </div>
                 </div>               
-                <form method="post">
+                <form method="post" id="profile-form">
                     {% csrf_token %}
-    
                     <div class="grid grid-cols-6 gap-6">
                         {% for field in form %}
                         {% if field.name not in "pre_existing_conditions age gender budget" %}
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
-                            {{ field }}
+                            <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
+                            <input 
+                                id="{{ field.id_for_label }}"
+                                name="{{ field.name }}"
+                                type="{{ field.field.widget.input_type }}"
+                                value="{{ field.value|default_if_none:'' }}"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                data-field="{{ field.name }}"
+                                {% if field.field.required %}required{% endif %}
+                            >
+                            <div id="{{ field.name }}-status" class="mt-1 text-xs"></div>
                         </div>
                         {% endif %}
                         {% endfor %}
-                        <div class="col-span-6 sm:col-full">
-                            <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800" type="submit">Save all</button>
-                        </div>
                     </div>
-    
                 </form>
             </div>
             {% if is_patient %}
@@ -835,5 +845,169 @@ document.addEventListener('DOMContentLoaded', function() {
         contents[0].classList.remove('hidden');
     });
 </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        // Function to set active tab
+        function setActiveTab(tabElement) {
+            // Remove active classes from all tabs
+            tabs.forEach(tab => {
+                tab.classList.remove(
+                    'text-blue-600', 
+                    'dark:text-blue-400',
+                    'border-blue-600',
+                    'dark:border-blue-400',
+                    'font-semibold'
+                );
+                tab.classList.add(
+                    'text-gray-600',
+                    'dark:text-gray-300',
+                    'border-transparent'
+                );
+            });
+            
+            // Add active classes to clicked tab
+            tabElement.classList.remove(
+                'text-gray-600',
+                'dark:text-gray-300',
+                'border-transparent'
+            );
+            tabElement.classList.add(
+                'text-blue-600',
+                'dark:text-blue-400',
+                'border-blue-600',
+                'dark:border-blue-400',
+                'font-semibold'
+            );
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Set active tab
+                setActiveTab(this);
+                
+                // Hide all content
+                contents.forEach(content => content.classList.add('hidden'));
+                
+                // Show corresponding content
+                const target = document.getElementById(this.getAttribute('data-tab'));
+                target.classList.remove('hidden');
+            });
+        });
+
+        // Check URL hash on page load
+        const hash = window.location.hash;
+        if (hash) {
+            const tabToActivate = document.querySelector(`.tab-button[data-tab="${hash.substring(1)}"]`);
+            if (tabToActivate) {
+                setActiveTab(tabToActivate);
+                document.getElementById(hash.substring(1)).classList.remove('hidden');
+                return;
+            }
+        }
+
+        // Set the first tab as active by default if no hash found
+        setActiveTab(tabs[0]);
+        contents[0].classList.remove('hidden');
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get CSRF token for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    
+        // Function to update field via AJAX
+        function updateField(fieldName, value) {
+            const statusElement = document.getElementById(`${fieldName}-status`);
+            
+            fetch('{% url "update_profile_field" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `field=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(value)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusElement.textContent = '✓ Saved';
+                    statusElement.className = 'mt-1 text-xs text-green-600 dark:text-green-400';
+                    
+                    // Clear status after 2 seconds
+                    setTimeout(() => {
+                        statusElement.textContent = '';
+                    }, 2000);
+                } else {
+                    statusElement.textContent = '✗ Error: ' + data.error;
+                    statusElement.className = 'mt-1 text-xs text-red-600 dark:text-red-400';
+                }
+            })
+            .catch(error => {
+                statusElement.textContent = '✗ Network error';
+                statusElement.className = 'mt-1 text-xs text-red-600 dark:text-red-400';
+            });
+        }
+    
+        // Set up event listeners for all input fields
+        document.querySelectorAll('input[data-field]').forEach(input => {
+            // Use debounce to prevent too many requests
+            let debounceTimer;
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    updateField(this.dataset.field, this.value);
+                }, 800); // 800ms delay after typing stops
+            });
+    
+            // Also update on blur (when field loses focus)
+            input.addEventListener('blur', function() {
+                clearTimeout(debounceTimer);
+                updateField(this.dataset.field, this.value);
+            });
+        });
+    
+        // Special handling for select fields (like gender)
+        document.querySelectorAll('select[data-field]').forEach(select => {
+            select.addEventListener('change', function() {
+                updateField(this.dataset.field, this.value);
+            });
+        });
+    
+        // Special handling for pre-existing conditions (if you have that field)
+        const preExistingConditionsInput = document.getElementById('pre_existing_conditions');
+        if (preExistingConditionsInput) {
+            preExistingConditionsInput.addEventListener('change', function() {
+                updateField('pre_existing_conditions', this.value);
+            });
+        }
+    
+        // Special handling for budget range slider
+        const budgetRange = document.getElementById('budgetRange');
+        if (budgetRange) {
+            budgetRange.addEventListener('change', function() {
+                updateField('budget', this.value);
+            });
+        }
+    });
+    </script>
 
 {% endblock extra_js %}

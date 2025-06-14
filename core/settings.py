@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "home",
     "apps.common",
     "apps.users",
+    # 'appointment',
     "appointments",
     "crispy_bootstrap4",
     "crispy_forms",
@@ -219,6 +220,7 @@ CELERY_RESULT_EXPIRES = 60 * 60 * 24 * 30  # Results expire after 1 month
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
 ########################################
 
 

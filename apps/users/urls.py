@@ -57,4 +57,5 @@ urlpatterns = [
     path(
         "delete-document/<int:doc_id>/", views.delete_document, name="delete_document"
     ),
+    path('update-profile-field/', views.update_profile_field, name='update_profile_field'),
 ]

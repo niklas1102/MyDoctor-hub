@@ -4,7 +4,8 @@ from django import forms
 from .models import Appointment, Diagnosis, Document, Immunization, LabResult, MedicalRecords, Patient, Encounter, Prescription
 from django.contrib.auth import get_user_model
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field
+from crispy_forms.layout import Submit, Layout, Field, Div, HTML, Field
+from datetime import datetime
 
 User = get_user_model()
 
@@ -44,6 +45,8 @@ class ImmunizationForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+
+
 class DocumentForm(forms.ModelForm):
     class Meta:
         model = Document
@@ -67,14 +70,18 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['date'].widget = forms.HiddenInput()  # Now handled by modal
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Field("doctor", css_class="mb-4"),
-            Field("date", css_class="mb-4"),
+            HTML("""<button id="openCalendar" type="button" class="mt-2 px-4 py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200">
+                <i class="far fa-calendar-alt mr-2"></i> Select Date & Time
+            </button>"""),
+            Field("date", css_class="mb-4 hidden"),  # Hidden field
             Field("reason", css_class="mb-4"),
         )
         self.helper.add_input(
-            Submit("submit", "Book Appointment", css_class="bg-blue-500")
+            Submit("submit", "Book Appointment", css_class="submit-button")
         )
 
     def clean_doctor(self):

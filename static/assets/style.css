@@ -319,3 +319,32 @@ button.remove-image {
   border: 1px solid #f00;
   padding: 2px;
 }
+
+/* Add this to your styles.css */
+button[type="submit"], 
+input[type="submit"] {
+  background-color: #2563eb !important; /* bg-blue-600 */
+  color: white !important;
+  padding: 0.75rem 1.5rem !important; /* px-6 py-3 */
+  font-weight: 500 !important; /* font-medium */
+  border-radius: 0.5rem !important; /* rounded-lg */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; /* shadow-md */
+  transition-property: all !important;
+  transition-duration: 200ms !important; /* transition duration-200 */
+}
+
+button[type="submit"]:hover, 
+input[type="submit"]:hover {
+  background-color: #1d4ed8 !important; /* hover:bg-blue-700 */
+}
+
+/* Dark mode specific styles */
+.dark button[type="submit"],
+.dark input[type="submit"] {
+  background-color: #1e40af !important; /* dark:bg-blue-700 */
+}
+
+.dark button[type="submit"]:hover,
+.dark input[type="submit"]:hover {
+  background-color: #1e3a8a !important; /* dark:hover:bg-blue-800 */
+}

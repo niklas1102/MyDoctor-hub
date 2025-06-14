@@ -57,10 +57,10 @@ class SignUpView(CreateView):
 
     def form_valid(self, form):
         user = form.save()  # Save the new user
-        login(self.request, user)  # Log in the user immediately
+        login(self.request, user)
+        
     
         if user.groups.filter(name="Patient").exists():
-            # Prepare the FHIR resource data
             resource_data = {
                 "resourceType": "Patient",
                 "id": str(user.uuid),  # Use the UUID as the FHIR ID
@@ -69,7 +69,6 @@ class SignUpView(CreateView):
                 "birthDate": user.profile.birth_date.isoformat() if hasattr(user, "profile") and user.profile.birth_date else None,
             }
 
-            # Push the patient data to the cloud asynchronously
             push_patient_to_cloud.delay(resource_data)
 
         return super().form_valid(form)
@@ -138,6 +137,65 @@ def profile(request):
     return render(request, "dashboard/profile.html", context)
 
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+@require_POST
+def update_profile_field(request):
+    field = request.POST.get('field')
+    value = request.POST.get('value')
+    
+    try:
+        if field in ['first_name', 'last_name', 'email']:
+            # Update User model fields
+            setattr(request.user, field, value)
+            request.user.save()
+        else:
+            # Update Profile model fields
+            profile = request.user.profile
+            # Handle special fields
+            if field == 'pre_existing_conditions':
+                # Convert string to list if needed
+                conditions = [c.strip() for c in value.split(',') if c.strip()]
+                setattr(profile, field, conditions)
+            elif field == 'budget':
+                # Convert to integer
+                setattr(profile, field, int(value))
+            else:
+                setattr(profile, field, value)
+            profile.save()
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+# @login_required
+# @require_POST
+# def update_profile_field(request):
+#     field = request.POST.get('field')
+#     value = request.POST.get('value')
+    
+#     try:
+#         if field in ['first_name', 'last_name', 'email']:
+#             setattr(request.user, field, value)
+#             request.user.save()
+#         else:
+#             profile = request.user.profile
+#             if field == 'pre_existing_conditions':
+#                 setattr(profile, field, value)
+#             elif field == 'gender':
+#                 setattr(profile, field, value)
+#             else:
+#                 setattr(profile, field, value)
+#             profile.save()
+        
+#         return JsonResponse({'success': True})
+#     except Exception as e:
+#         return JsonResponse({'success': False, 'error': str(e)})
+    
 @login_required(login_url="/users/signin/")
 def upload_avatar(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -148,17 +206,37 @@ def upload_avatar(request):
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-@login_required(login_url="/users/signin/")
+# @login_required(login_url="/users/signin/")
+# def change_password(request):
+#     user = request.user
+#     if request.method == "POST":
+#         if check_password(request.POST.get("current_password"), user.password):
+#             user.set_password(request.POST.get("new_password"))
+#             user.save()
+#             messages.success(request, "Password changed successfully")
+#         else:
+#             messages.error(request, "Password doesn't match!")
+#     return redirect(request.META.get("HTTP_REFERER"))
+
+from django.http import JsonResponse
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+
+
+@login_required
 def change_password(request):
-    user = request.user
-    if request.method == "POST":
-        if check_password(request.POST.get("current_password"), user.password):
+    if request.method == 'POST':
+        print(request.POST)
+        if request.POST.get("new_password") == request.POST.get("confirm_password"):
+            user = request.user
             user.set_password(request.POST.get("new_password"))
             user.save()
-            messages.success(request, "Password changed successfully")
+            return JsonResponse({'success': True, 'message': 'Password changed successfully'})
         else:
-            messages.error(request, "Password doesn't match!")
-    return redirect(request.META.get("HTTP_REFERER"))
+            return JsonResponse({'success': False, 'message': 'Passwords do not match'})
+
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 
 def user_list(request):

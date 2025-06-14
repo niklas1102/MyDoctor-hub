@@ -13,9 +13,9 @@
       </div>
       <div>
         <img 
-          src="{{ patient.profile.picture.url|default:'/static/default-profile.png' }}" 
+          src="{{ patient.profile.avatar.url }}" 
           alt="Profile Picture" 
-          class="w-24 h-24 rounded-full object-cover"
+          class="w-10 h-10 rounded-full object-cover"
         />
       </div>
     </div>
@@ -28,7 +28,7 @@
           class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
           onclick="window.location.href='{% url 'appointments:doctor_encounter_view' encounter_id=0 %}?patient_id={{ patient.id }}'"
         >
-          Create Encounter
+          Create Encounter 
         </button>
       </div>
       <!-- Placeholder for visit content -->

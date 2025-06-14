@@ -4,7 +4,7 @@ from django.urls import path
 from . import views
 from .views import doctor_patient_lookup
 
-app_name = "appointments"
+app_name = 'appointments' 
 
 urlpatterns = [
     path("", views.appointment_list, name="appointment_list"),
@@ -28,4 +28,6 @@ urlpatterns = [
         name="doctor_encounter_view",
     ),
     path("doctor/search-patients/", views.search_patients, name="search_patients"),
+    path('end-visit/', views.end_visit, name='end_visit')
+
 ]

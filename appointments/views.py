@@ -321,12 +321,12 @@ def doctor_encounter_view(request, encounter_id):
         updated_data = {
             "resourceType": "Encounter",
             "status": encounter.status,
-            "period": {"start": str(encounter.date)},
+            "period": {"start": str(encounter.date)},  # Corrected syntax
             "subject": {"reference": f"Patient/{encounter.patient.profile.uuid}"},
             "participant": [{"individual": {"reference": f"Practitioner/{request.user.id}"}}],
             "notes": encounter.notes,
         }
-        update_encounter_in_cloud.delay(encounter.id, updated_data)
+        update_encounter_in_cloud.delay(encounter.id, updated_data)  # Corrected function call
         
         messages.success(request, "Notes saved successfully.")
         return redirect(
@@ -474,6 +474,28 @@ def doctor_encounter_view(request, encounter_id):
         "segment": "doctor_encounter_view",
     }
     return render(request, "appointments/doctor_encounter_view.html", context)
+
+
+@login_required(login_url="/users/signin/")
+@user_passes_test(is_doctor)
+def end_visit(request, encounter_id):
+    encounter = get_object_or_404(Encounter, id=encounter_id)
+    if encounter.status == "Closed":
+        messages.error(request, "This encounter is already closed.")
+        return redirect(reverse("appointments:doctor_encounter_view", args=[encounter.id]))
+
+    if request.method == "POST":
+        # Finalize the encounter
+        encounter.status = "Closed"
+        encounter.save()
+        messages.success(request, "Encounter has been successfully closed.")
+        return redirect(reverse("appointments:doctor_encounter_view", args=[encounter.id]))
+
+    context = {
+        "encounter": encounter,
+        "segment": "end_visit",
+    }
+    return render(request, "appointments/end_visit_confirmation.html", context)
 
 
 @login_required(login_url="/users/signin/")

@@ -75,6 +75,7 @@
       themeSystem: 'standard',
       events: [
         {% for appointment in appointments %}
+        {% if is_doctor %}
         {
           title: '{{ appointment.patient.username }} - {{ appointment.reason }}',
           start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
@@ -84,6 +85,12 @@
             // ...add other needed patient fields...
           }
         },
+        {% else %}
+        {
+          title: '{{ appointment.doctor.username }} - {{ appointment.reason }}',
+          start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+        },
+        {% endif %}
         {% endfor %}
       ],
       eventClick: function(info) {

@@ -620,9 +620,10 @@
 
                 <div class="grid grid-cols-6 gap-6">
                     {% for field in form %}
-                    {% if field.name not in "pre_existing_conditions age gender budget" %}
+                    {# exclude medical‐only fields for doctors #}
+                    {% if field.name not in "pre_existing_conditions age gender budget date_of_birth" %}
                     <div class="col-span-6 sm:col-span-3">
-                        <label for="first-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
+                        <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
                         {{ field }}
                     </div>
                     {% endif %}

@@ -117,12 +117,17 @@ def profile(request):
     else:
         form = ProfileForm(instance=profile)
 
-    # --- add these two lines so the template’s <input> and <select> have data-field from the start ---
-    form.fields['date_of_birth'].widget.attrs.update({
-        'data-field':'date_of_birth', 
-        'id':'id_date_of_birth'
-    })
-    form.fields['gender'].widget.attrs.update({'data-field':'gender', 'id':'id_gender'})
+    # --- only update these attrs if the fields are on the form ---
+    if 'date_of_birth' in form.fields:
+        form.fields['date_of_birth'].widget.attrs.update({
+            'data-field': 'date_of_birth',
+            'id': 'id_date_of_birth'
+        })
+    if 'gender' in form.fields:
+        form.fields['gender'].widget.attrs.update({
+            'data-field': 'gender',
+            'id': 'id_gender'
+        })
     # ---------------------------------------------------------------------------
 
     user = request.user

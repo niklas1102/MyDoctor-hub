@@ -22,8 +22,41 @@
 
 <style>
     .tab-button {
-    transition: all 0.2s ease-in-out;
-}
+        transition: all 0.2s ease-in-out;
+    }
+    /* new chip container styling */
+    #selected-conditions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .condition-chip {
+        background-color: #eef2ff;
+        color: #4338ca;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+    .condition-chip:hover {
+        background-color: #e0e7ff;
+    }
+    .condition-chip button {
+        background: transparent;
+        border: none;
+        color: #6366f1;
+        margin-left: 0.25rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .condition-chip button:hover {
+        color: #4f46e5;
+    }
 </style>
 
 {% if is_patient %}
@@ -150,7 +183,8 @@
                 <input type="hidden"
                        name="pre_existing_conditions"
                        id="pre_existing_conditions_field"
-                       data-field="pre_existing_conditions" />
+                       data-field="pre_existing_conditions"
+                       value="{{ form.pre_existing_conditions.value|default_if_none:'' }}" />
             </div>
             <!-- Age -->
             <div class="col-span-6 sm:col-span-3">
@@ -620,7 +654,8 @@
             <input type="hidden"
                    name="pre_existing_conditions"
                    id="pre_existing_conditions_field"
-                   data-field="pre_existing_conditions" />
+                   data-field="pre_existing_conditions"
+                   value="{{ form.pre_existing_conditions.value|default_if_none:'' }}" />
         </div>
         <!-- Age -->
         <div class="col-span-6 sm:col-span-3">
@@ -750,93 +785,123 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ---------------------------------------------
-    // Autocomplete for pre_existing_conditions
-    // --------------------------------------------- 
     const conditions = [
-      "Diabetes", "Dyslexia", "Dysthymia", "Diphtheria",
-      "Asthma", "Cancer", "Heart Disease", "Hypertension"
-      // ...add as many as needed...
+        "Diabetes", "Dyslexia", "Dysthymia", "Diphtheria", "Asthma", "Cancer", 
+        "Heart Disease", "Hypertension", "Malaria", "Migraine", "Arthritis", 
+        "Depression", "Anxiety", "Tuberculosis", "Bronchitis", "Pneumonia", 
+        "Hepatitis A", "Hepatitis B", "Hepatitis C", "Influenza", "COVID-19", 
+        "Eczema", "Psoriasis", "Acne", "Rosacea", "Parkinson's Disease", 
+        "Alzheimer's Disease", "Multiple Sclerosis", "Epilepsy", "Stroke", 
+        "Chronic Kidney Disease", "Liver Cirrhosis", "Pancreatitis", 
+        "Gallstones", "Ulcerative Colitis", "Crohn's Disease", "Celiac Disease", 
+        "Irritable Bowel Syndrome", "Gout", "Osteoporosis", "Rheumatoid Arthritis", 
+        "Systemic Lupus Erythematosus", "Fibromyalgia", "Chronic Fatigue Syndrome", 
+        "Sleep Apnea", "Narcolepsy", "Insomnia", "Obesity", "Anorexia", 
+        "Bulimia", "Thyroid Disease", "Hyperthyroidism", "Hypothyroidism", 
+        "Addison's Disease", "Cushing's Syndrome", "Polycystic Ovary Syndrome", 
+        "Endometriosis", "Infertility", "Prostate Cancer", "Testicular Cancer", 
+        "Breast Cancer", "Ovarian Cancer", "Cervical Cancer", "Leukemia", 
+        "Lymphoma", "Melanoma", "Skin Cancer", "Esophageal Cancer", 
+        "Stomach Cancer", "Colon Cancer", "Rectal Cancer", "Bladder Cancer", 
+        "Kidney Cancer", "Liver Cancer", "Pancreatic Cancer", "Bone Cancer", 
+        "Sarcoma", "HIV/AIDS", "Syphilis", "Gonorrhea", "Chlamydia", 
+        "Herpes", "Human Papillomavirus", "Mononucleosis", "Lyme Disease", 
+        "Zika Virus", "Dengue Fever", "Yellow Fever", "Rabies", "Tetanus", 
+        "Measles", "Mumps", "Rubella", "Chickenpox", "Shingles", "Polio", 
+        "Whooping Cough", "Scarlet Fever", "Typhoid Fever", "Cholera", 
+        "Malnutrition", "Vitamin D Deficiency", "Iron Deficiency Anemia", 
+        "Sickle Cell Anemia", "Hemophilia", "Thalassemia", "Leukopenia", 
+        "Thrombocytopenia", "Aplastic Anemia", "Autoimmune Diseases", 
+        "Allergies", "Food Allergies", "Hay Fever", "Asthma", "Sinusitis", 
+        "Otitis Media", "Tonsillitis", "Pharyngitis", "Laryngitis", 
+        "Bronchitis", "Pleurisy", "Pulmonary Embolism", "Chronic Obstructive Pulmonary Disease", 
+        "Interstitial Lung Disease", "Pulmonary Hypertension", "Cystic Fibrosis", 
+        "Lung Cancer", "Mesothelioma", "Sleep Disorders", "Restless Legs Syndrome", 
+        "Periodic Limb Movement Disorder", "Parasomnias", "Night Terrors", 
+        "Sleepwalking", "Sleep Paralysis", "Jet Lag", "Shift Work Sleep Disorder", 
+        "Circadian Rhythm Disorders", "Hypersomnia", "Cataplexy", "Sleep Bruxism", 
+        "Dental Caries", "Gingivitis", "Periodontitis", "Oral Cancer", 
+        "Temporomandibular Joint Disorders", "Cleft Lip and Palate", 
+        "Dry Mouth", "Halitosis", "Tooth Sensitivity", "Dental Abscess", 
+        "Dental Trauma", "Dental Erosion", "Dental Fluorosis", "Dental Malocclusion", 
+        "Dental Plaque", "Dental Tartar", "Dental Stains", "Dental Cavities", 
+        "Dental Crowding", "Dental Spacing", "Dental Overbite", "Dental Underbite", 
+        "Dental Crossbite", "Dental Open Bite", "Dental Impacted Teeth", 
+        "Dental Missing Teeth", "Dental Supernumerary Teeth", "Dental Retained Teeth", 
+        "Dental Root Resorption", "Dental Pulpitis", "Dental Periapical Abscess", 
+        "Dental Periodontal Abscess", "Dental Gingival Hyperplasia", 
+        "Dental Gingival Recession", "Dental Gingival Bleeding", "Dental Gingival Swelling", 
+
     ];
     const input = document.getElementById('pre_existing_conditions');
     const suggestionBox = document.getElementById('condition-suggestions');
-
-    input.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        // Filter the conditions
-        const filtered = conditions.filter(cond => cond.toLowerCase().startsWith(query));
-        // Clear and populate the suggestion box
-        suggestionBox.innerHTML = '';
-        filtered.forEach(cond => {
-            const li = document.createElement('li');
-            li.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer';
-            li.textContent = cond;
-            li.onclick = () => {
-                input.value = cond;
-                suggestionBox.classList.add('hidden');
-            };
-            suggestionBox.appendChild(li);
-        });
-        suggestionBox.classList.toggle('hidden', filtered.length === 0 || !query);
-    });
-
-    // Click anywhere else to hide suggestions
-    document.addEventListener('click', function(e) {
-        if(!suggestionBox.contains(e.target) && e.target !== input) {
-            suggestionBox.classList.add('hidden');
-        }
-    });
-
-    // Store selected conditions in an array and render them
-    let selectedConditions = [];
     const selectedContainer = document.getElementById('selected-conditions');
     const hiddenField = document.getElementById('pre_existing_conditions_field');
+    let selectedConditions = [];
 
     function renderSelectedConditions() {
         selectedContainer.innerHTML = '';
+
         selectedConditions.forEach(cond => {
-            const chip = document.createElement('div');
-            chip.className = 'inline-flex items-center px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-700';
-            chip.innerHTML = cond + ' &nbsp;<button type="button" class="ml-1 text-red-500 font-bold">x</button>';
+            const chip = document.createElement('span');
+            chip.className = 'condition-chip';  // use new class
+            chip.innerHTML = `${cond}<button type="button">&times;</button>`;
             chip.querySelector('button').onclick = () => {
                 selectedConditions = selectedConditions.filter(c => c !== cond);
                 renderSelectedConditions();
             };
             selectedContainer.appendChild(chip);
         });
+
         hiddenField.value = selectedConditions.join(',');
-        // trigger AJAX save
         hiddenField.dispatchEvent(new Event('change'));
     }
 
-    // Modify your existing li.onclick to add the selected condition
-    // instead of just populating the input field.
+    function renderSuggestions(filter = '') {
+        suggestionBox.innerHTML = '';
+        const term = filter.toLowerCase();
+        const filtered = conditions
+            .filter(c => !selectedConditions.includes(c) && c.toLowerCase().includes(term));
+        filtered.forEach(c => {
+            const li = document.createElement('li');
+            li.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer';
+            li.textContent = c;
+            suggestionBox.appendChild(li);
+        });
+        suggestionBox.classList.toggle('hidden', filtered.length === 0);
+    }
+
+    // show all on focus
+    input.addEventListener('focus', () => renderSuggestions());
+
+    // filter on input
+    input.addEventListener('input', () => renderSuggestions(input.value));
+
+    // pick from list
     suggestionBox.addEventListener('click', function(e) {
-        if (e.target && e.target.tagName === 'LI') {
-            const cond = e.target.textContent;
-            if(!selectedConditions.includes(cond)) {
-                selectedConditions.push(cond);
-                renderSelectedConditions();
-            }
+        if (e.target.tagName === 'LI') {
+            selectedConditions.push(e.target.textContent);
+            renderSelectedConditions();
             input.value = '';
+            renderSuggestions();
+        }
+    });
+
+    // hide on outside
+    document.addEventListener('click', function(e) {
+        if (!suggestionBox.contains(e.target) && e.target !== input) {
             suggestionBox.classList.add('hidden');
         }
     });
 
-    // ---------------------------------------------
-    // Range slider for budget (updates label only)
-    // ---------------------------------------------
-    const budgetRange = document.getElementById('budgetRange');
-    const budgetValue = document.getElementById('budgetValue');
-    const levels = ["Low", "Mid Low", "Medium", "Mid High", "High"];
-
-    function updateBudgetLabel(val) {
-        budgetValue.textContent = levels[val];
+    // initialize from saved profile value…
+    if (hiddenField.value) {
+        selectedConditions = hiddenField.value
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+        renderSelectedConditions();
     }
-    budgetRange.addEventListener('input', function() {
-        updateBudgetLabel(this.value);
-    });
-    updateBudgetLabel(budgetRange.value);
 });
 </script>
 

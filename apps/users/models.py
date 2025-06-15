@@ -30,7 +30,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=255, null=True, blank=True)
     avatar = models.ImageField(upload_to="avatar", null=True, blank=True)
     pre_existing_conditions = models.TextField(null=True, blank=True)
-    age = models.PositiveIntegerField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     GENDER_CHOICES = [
         ("male", "Male"),
         ("female", "Female"),

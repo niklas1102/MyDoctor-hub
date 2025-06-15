@@ -9,6 +9,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.forms import DateInput
 from apps.users.models import Profile
 
 
@@ -130,6 +131,14 @@ class ProfileForm(forms.ModelForm):
             "avatar",
             "user_type",
         )
+        widgets = {
+            "date_of_birth": DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg p-2.5",
+                }
+            ),
+        }
 
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)

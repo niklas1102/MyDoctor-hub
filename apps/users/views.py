@@ -118,7 +118,10 @@ def profile(request):
         form = ProfileForm(instance=profile)
 
     # --- add these two lines so the template’s <input> and <select> have data-field from the start ---
-    form.fields['age'].widget.attrs.update({'data-field':'age', 'id':'id_age'})
+    form.fields['date_of_birth'].widget.attrs.update({
+        'data-field':'date_of_birth', 
+        'id':'id_date_of_birth'
+    })
     form.fields['gender'].widget.attrs.update({'data-field':'gender', 'id':'id_gender'})
     # ---------------------------------------------------------------------------
 
@@ -169,6 +172,10 @@ def update_profile_field(request):
             elif field == 'budget':
                 # Convert to integer
                 setattr(profile, field, int(value))
+            elif field == 'date_of_birth':
+                from datetime import datetime
+                dob = datetime.strptime(value, '%Y-%m-%d').date()
+                setattr(profile, field, dob)
             else:
                 setattr(profile, field, value)
             profile.save()

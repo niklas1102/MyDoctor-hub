@@ -116,7 +116,12 @@ def profile(request):
             messages.success(request, "Profile updated successfully")
     else:
         form = ProfileForm(instance=profile)
-        
+
+    # --- add these two lines so the template’s <input> and <select> have data-field from the start ---
+    form.fields['age'].widget.attrs.update({'data-field':'age', 'id':'id_age'})
+    form.fields['gender'].widget.attrs.update({'data-field':'gender', 'id':'id_gender'})
+    # ---------------------------------------------------------------------------
+
     user = request.user
     encounters = Encounter.objects.filter(patient=user).order_by("-date")
     lab_results = LabResult.objects.filter(patient=user).order_by("-date")
@@ -158,9 +163,9 @@ def update_profile_field(request):
             profile = request.user.profile
             # Handle special fields
             if field == 'pre_existing_conditions':
-                # Convert string to list if needed
+                # Convert to comma-separated string
                 conditions = [c.strip() for c in value.split(',') if c.strip()]
-                setattr(profile, field, conditions)
+                setattr(profile, field, ','.join(conditions))
             elif field == 'budget':
                 # Convert to integer
                 setattr(profile, field, int(value))

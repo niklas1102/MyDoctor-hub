@@ -147,24 +147,33 @@
                     <!-- Filtered suggestions appear here -->
                 </ul>
                 <div id="selected-conditions" class="mt-4 flex flex-wrap gap-2"></div>
-                <input type="hidden" name="pre_existing_conditions" id="pre_existing_conditions_field" />
+                <input type="hidden"
+                       name="pre_existing_conditions"
+                       id="pre_existing_conditions_field"
+                       data-field="pre_existing_conditions" />
             </div>
             <!-- Age -->
             <div class="col-span-6 sm:col-span-3">
                 {{ form.age.label_tag }}
                 {{ form.age }}
+                <div id="age-status" class="mt-1 text-xs"></div>
             </div>
             <!-- Gender -->
             <div class="col-span-6 sm:col-span-3">
                 {{ form.gender.label_tag }}
                 {{ form.gender }}
+                <div id="gender-status" class="mt-1 text-xs"></div>
             </div>
             <!-- Range slider for budget -->
             <div class="col-span-6 sm:col-span-3">
-                <label for="budgetRange" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">        
+                <label for="budgetRange" class="block mb-2 text-sm font-medium dark:text-white">
                     {{ form.budget.label }}
                 </label>
-                <input type="range" id="budgetRange" min="0" max="4" step="1" value="2"
+                <input type="range"
+                       id="budgetRange"
+                       data-field="budget"
+                       min="0" max="4" step="1"
+                       value="{{ request.user.profile.budget|default:'2' }}"
                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />   
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Selected: <span id="budgetValue">Medium</span>
@@ -608,24 +617,33 @@
                 <!-- Filtered suggestions appear here -->
             </ul>
             <div id="selected-conditions" class="mt-4 flex flex-wrap gap-2"></div>
-            <input type="hidden" name="pre_existing_conditions" id="pre_existing_conditions_field" />
+            <input type="hidden"
+                   name="pre_existing_conditions"
+                   id="pre_existing_conditions_field"
+                   data-field="pre_existing_conditions" />
         </div>
         <!-- Age -->
         <div class="col-span-6 sm:col-span-3">
             {{ form.age.label_tag }}
             {{ form.age }}
+            <div id="age-status" class="mt-1 text-xs"></div>
         </div>
         <!-- Gender -->
         <div class="col-span-6 sm:col-span-3">
             {{ form.gender.label_tag }}
             {{ form.gender }}
+            <div id="gender-status" class="mt-1 text-xs"></div>
         </div>
         <!-- Range slider for budget -->
         <div class="col-span-6 sm:col-span-3">
-            <label for="budgetRange" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">        
+            <label for="budgetRange" class="block mb-2 text-sm font-medium dark:text-white">
                 {{ form.budget.label }}
             </label>
-            <input type="range" id="budgetRange" min="0" max="4" step="1" value="2"
+            <input type="range"
+                   id="budgetRange"
+                   data-field="budget"
+                   min="0" max="4" step="1"
+                   value="{{ request.user.profile.budget|default:'2' }}"
                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />   
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Selected: <span id="budgetValue">Medium</span>
@@ -713,7 +731,7 @@
             if (type === 'password') {
                 eyeIcon.innerHTML = `
                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 14">
-                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">     
+                    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                       <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
                       <path d="M10 13c4.97 0 9-2.686 9-6s-4.03-6-9-6-9 2.686-9 6 4.03 6 9 6Z"/>
                     </g>
@@ -787,6 +805,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedContainer.appendChild(chip);
         });
         hiddenField.value = selectedConditions.join(',');
+        // trigger AJAX save
+        hiddenField.dispatchEvent(new Event('change'));
     }
 
     // Modify your existing li.onclick to add the selected condition
@@ -804,8 +824,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------
-    // Range slider for budget
-    // --------------------------------------------- 
+    // Range slider for budget (updates label only)
+    // ---------------------------------------------
     const budgetRange = document.getElementById('budgetRange');
     const budgetValue = document.getElementById('budgetValue');
     const levels = ["Low", "Mid Low", "Medium", "Mid High", "High"];
@@ -916,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Get CSRF token for AJAX requests
         function getCookie(name) {
             let cookieValue = null;
@@ -992,14 +1012,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     
-        // Special handling for pre-existing conditions (if you have that field)
-        const preExistingConditionsInput = document.getElementById('pre_existing_conditions');
-        if (preExistingConditionsInput) {
-            preExistingConditionsInput.addEventListener('change', function() {
+        // Special handling for pre-existing conditions
+        const preExistingConditionsField = document.getElementById('pre_existing_conditions_field');
+        if (preExistingConditionsField) {
+            preExistingConditionsField.addEventListener('change', function() {
                 updateField('pre_existing_conditions', this.value);
             });
         }
-    
+
         // Special handling for budget range slider
         const budgetRange = document.getElementById('budgetRange');
         if (budgetRange) {
@@ -1009,5 +1029,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     </script>
-
 {% endblock extra_js %}

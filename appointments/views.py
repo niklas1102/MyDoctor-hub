@@ -132,6 +132,7 @@ def doctor_appointments(request):
         "user": request.user,
         "is_doctor": request.user.groups.filter(name="Doctor").exists(),
         "is_patient": request.user.groups.filter(name="Patient").exists(),
+        "segment": "doctor_appointments",
     }
     return render(request, "appointments/doctor_appointments.html", context)
 
@@ -147,6 +148,7 @@ def doctor_calendar(request):
         "user": request.user,
         "is_doctor": request.user.groups.filter(name="Doctor").exists(),
         "is_patient": request.user.groups.filter(name="Patient").exists(),
+        "segment": "doctor_calendar",
     }
     return render(request, "appointments/doctor_calendar.html", context)
 

@@ -1,4 +1,4 @@
-# appointments/urls.py
+# appointments/2.py
 
 from django.urls import path
 from . import views

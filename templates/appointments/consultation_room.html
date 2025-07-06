@@ -1,0 +1,251 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+        {% if user_role == 'doctor' %}
+          Consultation with {{ appointment.patient.get_full_name|default:appointment.patient.username }}
+        {% else %}
+          Consultation with Dr. {{ appointment.doctor.get_full_name|default:appointment.doctor.username }}
+        {% endif %}
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        Scheduled for {{ appointment.date|date:"F d, Y \\a\\t g:i A" }}
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+      <div class="mb-4">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Video Consultation</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Click "Join Meeting" to start the video consultation. Make sure your camera and microphone are working properly.
+        </p>
+      </div>
+
+      <!-- Patient waiting for doctor message -->
+      {% if user_role == 'patient' %}
+      <div id="waiting-for-doctor" class="flex flex-col items-center justify-center py-8" style="display:none;">
+        <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p class="text-lg text-gray-700 dark:text-gray-300 font-semibold mb-2">Waiting for the doctor to join...</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">The consultation will start automatically once the doctor joins.</p>
+      </div>
+      {% endif %}
+
+      <!-- Jitsi Meet Container -->
+      <div class="relative">
+        <div id="jitsi-meet-container" class="w-full bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center" 
+             style="min-height: 500px;">
+          <div class="text-center">
+            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400">Loading video consultation...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meeting Controls -->
+      <div class="mt-4 flex justify-between items-center">
+        <div class="flex space-x-4">
+          <button id="toggleVideo" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span>Toggle Video</span>
+          </button>
+          
+          <button id="toggleAudio" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+            </svg>
+            <span>Toggle Audio</span>
+          </button>
+        </div>
+
+        <div class="flex space-x-4">
+          <button id="endCall" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 3l1.5 1.5m0 0l1.5 1.5M6 3l1.5 1.5m0 0l1.5 1.5M1 5h2m0 0v2m0-2l2 2M3 10l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+            </svg>
+            <span>End Call</span>
+          </button>
+          
+          <a href="{% if user_role == 'doctor' %}{% url 'appointments:doctor_appointments' %}{% else %}{% url 'appointments:appointment_list' %}{% endif %}" 
+             class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Back to Appointments</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Details -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Appointment Details</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Patient</p>
+          <p class="font-medium text-gray-800 dark:text-white">{{ appointment.patient.get_full_name|default:appointment.patient.username }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Doctor</p>
+          <p class="font-medium text-gray-800 dark:text-white">Dr. {{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Date & Time</p>
+          <p class="font-medium text-gray-800 dark:text-white">{{ appointment.date|date:"F d, Y \\a\\t g:i A" }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Reason</p>
+          <p class="font-medium text-gray-800 dark:text-white">{{ appointment.reason }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Jitsi Meet API -->
+<script src="https://meet.jit.si/external_api.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Try multiple domains in case one is down or requires authentication
+    const domains = ['meet.jit.si', '8x8.vc', 'jitsi.mindtrex.com'];
+    let currentDomainIndex = 0;
+    
+    function createMeeting(domain) {
+        const options = {
+            roomName: '{{ meeting_room_id }}',
+            width: '100%',
+            height: '500px',
+            parentNode: document.querySelector('#jitsi-meet-container'),
+            configOverwrite: {
+                startWithAudioMuted: false,
+                startWithVideoMuted: false,
+                enableWelcomePage: false,
+                prejoinPageEnabled: false,
+            },
+            interfaceConfigOverwrite: {
+                SHOW_JITSI_WATERMARK: false,
+                SHOW_WATERMARK_FOR_GUESTS: false,
+            },
+            userInfo: {
+                displayName: '{% if user_role == "doctor" %}Dr. {{ user_display_name }}{% else %}{{ user_display_name }}{% endif %}',
+                email: '{{ user.email }}'
+            }
+        };
+        
+        try {
+            const api = new JitsiMeetExternalAPI(domain, options);
+            
+            // If this fails, try the next domain
+            api.addEventListener('videoConferenceJoined', function () {
+                console.log('Successfully joined video conference on domain:', domain);
+                setupEventListeners(api);
+            });
+            
+            api.addEventListener('videoConferenceLeft', function () {
+                console.log('Left video conference');
+            });
+            
+            // Set up error handling
+            api.addEventListener('videoConferenceError', function (error) {
+                console.error('Video conference error:', error);
+                // Try next domain
+                currentDomainIndex++;
+                if (currentDomainIndex < domains.length) {
+                    console.log('Trying next domain:', domains[currentDomainIndex]);
+                    createMeeting(domains[currentDomainIndex]);
+                }
+            });
+            
+            return api;
+        } catch (error) {
+            console.error('Failed to create meeting with domain:', domain, error);
+            currentDomainIndex++;
+            if (currentDomainIndex < domains.length) {
+                console.log('Trying next domain:', domains[currentDomainIndex]);
+                createMeeting(domains[currentDomainIndex]);
+            }
+        }
+    }
+    
+    function setupEventListeners(api) {
+        // --- Patient waiting for doctor logic ---
+        {% if user_role == 'patient' %}
+        let doctorPresent = false;
+        // Show waiting message by default
+        document.getElementById('waiting-for-doctor').style.display = 'flex';
+        document.getElementById('jitsi-meet-container').style.display = 'none';
+        // Listen for participants
+        api.addEventListener('participantJoined', function(participant) {
+            // Doctor is assumed to be the first participant with a displayName that matches the doctor's name
+            if (participant.displayName && participant.displayName.toLowerCase().includes('dr.')) {
+                doctorPresent = true;
+                document.getElementById('waiting-for-doctor').style.display = 'none';
+                document.getElementById('jitsi-meet-container').style.display = 'block';
+            }
+        });
+        // Also check if doctor is already present (e.g., patient reloads page)
+        api.getParticipantsInfo().then(function(participants) {
+            if (participants.some(p => p.displayName && p.displayName.toLowerCase().includes('dr.'))) {
+                doctorPresent = true;
+                document.getElementById('waiting-for-doctor').style.display = 'none';
+                document.getElementById('jitsi-meet-container').style.display = 'block';
+            }
+        });
+        // If doctor leaves, show waiting again
+        api.addEventListener('participantLeft', function(participant) {
+            api.getParticipantsInfo().then(function(participants) {
+                if (!participants.some(p => p.displayName && p.displayName.toLowerCase().includes('dr.'))) {
+                    doctorPresent = false;
+                    document.getElementById('waiting-for-doctor').style.display = 'flex';
+                    document.getElementById('jitsi-meet-container').style.display = 'none';
+                }
+            });
+        });
+        {% endif %}
+
+        // Event listeners
+        api.addEventListener('readyToClose', function () {
+            window.location.href = "{% if user_role == 'doctor' %}{% url 'appointments:doctor_appointments' %}{% else %}{% url 'appointments:appointment_list' %}{% endif %}";
+        });
+
+        api.addEventListener('participantLeft', function (participant) {
+            console.log('Participant left:', participant);
+        });
+
+        api.addEventListener('participantJoined', function (participant) {
+            console.log('Participant joined:', participant);
+        });
+
+        // Button event listeners
+        document.getElementById('toggleVideo').addEventListener('click', function() {
+            api.executeCommand('toggleVideo');
+        });
+
+        document.getElementById('toggleAudio').addEventListener('click', function() {
+            api.executeCommand('toggleAudio');
+        });
+
+        document.getElementById('endCall').addEventListener('click', function() {
+            api.executeCommand('hangup');
+        });
+
+        // Hide loading indicator once API is ready
+        api.addEventListener('videoConferenceJoined', function () {
+            console.log('Video conference joined');
+        });
+    }
+    
+    // Start with the first domain
+    createMeeting(domains[0]);
+});
+</script>
+{% endblock %}

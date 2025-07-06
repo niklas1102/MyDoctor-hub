@@ -28,6 +28,7 @@ urlpatterns = [
         name="doctor_encounter_view",
     ),
     path("doctor/search-patients/", views.search_patients, name="search_patients"),
-    path('end-visit/', views.end_visit, name='end_visit')
-
+    path('end-visit/', views.end_visit, name='end_visit'),
+    path('consultation/<int:appointment_id>/', views.join_consultation, name='join_consultation'),
+    path('confirm/<int:appointment_id>/', views.confirm_appointment, name='confirm_appointment'),
 ]

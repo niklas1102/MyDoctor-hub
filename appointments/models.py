@@ -1,6 +1,7 @@
 # appointments/models.py
 
 import random
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -57,6 +58,23 @@ class Appointment(models.Model):
     reason = models.CharField(max_length=255, default="No reason provided")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
+    meeting_room_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.meeting_room_id:
+            self.meeting_room_id = self.generate_meeting_room_id()
+        super().save(*args, **kwargs)
+
+    def generate_meeting_room_id(self):
+        """Generate a unique meeting room ID for Jitsi Meet"""
+        while True:
+            # Use a very simple format that doesn't trigger authentication
+            import string
+            import random
+            # Generate a simple alphanumeric room name
+            room_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
+            if not Appointment.objects.filter(meeting_room_id=room_id).exists():
+                return room_id
 
     def __str__(self):
         return f"Appointment with Dr. {self.doctor.last_name} on {self.date.strftime('%Y-%m-%d %H:%M')}"

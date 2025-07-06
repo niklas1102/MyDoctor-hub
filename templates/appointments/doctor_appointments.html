@@ -12,6 +12,8 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -20,6 +22,31 @@
           <td class="px-6 py-4 whitespace-nowrap">{{ appointment.patient.username }}</td>
           <td class="px-6 py-4 whitespace-nowrap">{{ appointment.date|date:"Y-m-d H:i" }}</td>
           <td class="px-6 py-4 whitespace-nowrap">{{ appointment.reason }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+              {% if appointment.status == 'confirmed' %}bg-green-100 text-green-800{% elif appointment.status == 'pending' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+              {{ appointment.status|title }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex space-x-2">
+              {% if appointment.status == 'confirmed' %}
+                <a href="{% url 'appointments:join_consultation' appointment.id %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm inline-flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>Join Consultation</span>
+                </a>
+              {% endif %}
+              {% if appointment.status == 'pending' %}
+                <a href="{% url 'appointments:confirm_appointment' appointment.id %}" 
+                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                  Confirm
+                </a>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

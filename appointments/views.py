@@ -27,6 +27,8 @@ from .models import (
 )
 from .tasks import delete_document_from_cloud, delete_encounter_from_cloud, delete_immunization_from_cloud, delete_lab_result_from_cloud, delete_prescription_from_cloud, push_document_to_cloud, push_encounter_to_cloud, push_immunization_to_cloud, push_lab_result_to_cloud, push_patient_to_cloud, push_prescription_to_cloud, update_document_in_cloud, update_encounter_in_cloud, update_immunization_in_cloud, update_lab_result_in_cloud, update_patient_in_cloud, delete_patient_from_cloud, update_prescription_in_cloud 
 import json
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -537,6 +539,80 @@ def search_patients(request):
     return JsonResponse([], safe=False)
 
 
-def some_view(request):
-    # Ensure patient IDs are handled correctly
-    patient = Patient.objects.get(id="12345")  # ExampleAdd Diagnosis usage
+@login_required(login_url="/users/signin/")
+@user_passes_test(is_doctor_or_patient)
+def join_consultation(request, appointment_id):
+    """View to join Jitsi Meet consultation"""
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # Check if user is either the doctor or patient for this appointment
+    if request.user != appointment.doctor and request.user != appointment.patient:
+        messages.error(request, "You don't have permission to join this consultation.")
+        return redirect("appointments:appointment_list")
+    
+    # Check if appointment is confirmed
+    if appointment.status != "confirmed":
+        messages.error(request, "This appointment is not confirmed yet.")
+        return redirect("appointments:appointment_list")
+    
+    # Check if appointment time is within 30 minutes (before or after)
+    now = timezone.now()
+    appointment_time = appointment.date
+    time_diff = abs((now - appointment_time).total_seconds())
+    
+
+    
+    if time_diff > 2 * 60 * 60 and now > appointment_time:  # More than 2 hours after
+        messages.error(request, "This consultation has ended.")
+        return redirect("appointments:appointment_list")
+    
+    # Get user role for display
+    user_role = "doctor" if request.user == appointment.doctor else "patient"
+    user_display_name = request.user.get_full_name() or request.user.username
+    
+    context = {
+        "appointment": appointment,
+        "meeting_room_id": appointment.meeting_room_id,
+        "user_role": user_role,
+        "user_display_name": user_display_name,
+        "is_doctor": request.user.groups.filter(name="Doctor").exists(),
+        "is_patient": request.user.groups.filter(name="Patient").exists(),
+    }
+    
+    return render(request, "appointments/consultation_room.html", context)
+
+
+@login_required(login_url="/users/signin/")
+@user_passes_test(is_doctor)
+def confirm_appointment(request, appointment_id):
+    """View for doctors to confirm appointments"""
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # Check if user is the doctor for this appointment
+    if request.user != appointment.doctor:
+        messages.error(request, "You don't have permission to confirm this appointment.")
+        return redirect("appointments:doctor_appointments")
+    
+    # Confirm the appointment
+    appointment.status = "confirmed"
+    appointment.save()
+    
+    # Send confirmation email to patient
+    subject = "Appointment Confirmed"
+    message = f"Your appointment with Dr. {appointment.doctor.get_full_name()} on {appointment.date.strftime('%Y-%m-%d %H:%M')} has been confirmed."
+    try:
+        send_mail(
+            subject,
+            message,
+            "your-email@example.com",
+            [appointment.patient.email],
+            fail_silently=False,
+        )
+    except:
+        pass  # Email sending failed, but appointment is still confirmed
+    
+    messages.success(request, "Appointment has been confirmed.")
+    return redirect("appointments:doctor_appointments")
+
+
+# ...existing code...

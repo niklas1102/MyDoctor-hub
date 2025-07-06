@@ -1,0 +1,150 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <div class="max-w-2xl mx-auto">
+      <!-- Success Message -->
+      <div class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center">
+          <svg class="w-8 h-8 text-green-600 dark:text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <h1 class="text-lg font-semibold text-green-800 dark:text-green-200">Appointment Booked Successfully!</h1>
+            <p class="text-sm text-green-700 dark:text-green-300">Your appointment has been scheduled and confirmed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Details -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Appointment Details</h2>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Service</h3>
+              <p class="text-lg text-gray-900 dark:text-white">{{ appointment.appointment_request.service.name }}</p>
+              {% if appointment.appointment_request.service.description %}
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ appointment.appointment_request.service.description }}</p>
+              {% endif %}
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Date & Time</h3>
+              <p class="text-lg text-gray-900 dark:text-white">
+                {{ appointment.appointment_request.date|date:"F d, Y" }}
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ appointment.appointment_request.start_time|time:"g:i A" }}
+              </p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Staff Member</h3>
+              <p class="text-lg text-gray-900 dark:text-white">{{ appointment.appointment_request.staff_member.get_staff_member_name }}</p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Duration</h3>
+              <p class="text-lg text-gray-900 dark:text-white">{{ appointment.appointment_request.service.get_duration }}</p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Price</h3>
+              <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ appointment.appointment_request.service.get_price_text }}</p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Appointment ID</h3>
+              <p class="text-lg text-gray-900 dark:text-white font-mono">{{ appointment.id }}</p>
+            </div>
+          </div>
+          
+          {% if appointment.phone or appointment.address %}
+          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Contact Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {% if appointment.phone %}
+              <div>
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</h4>
+                <p class="text-gray-900 dark:text-white">{{ appointment.phone }}</p>
+              </div>
+              {% endif %}
+              
+              {% if appointment.address %}
+              <div>
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Address</h4>
+                <p class="text-gray-900 dark:text-white">{{ appointment.address }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          
+          {% if appointment.additional_info %}
+          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Additional Information</h3>
+            <p class="text-gray-900 dark:text-white">{{ appointment.additional_info }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Next Steps -->
+      <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3">What's Next?</h3>
+        <ul class="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>You'll receive a confirmation email shortly</span>
+          </li>
+          {% if appointment.want_reminder %}
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>We'll send you a reminder before your appointment</span>
+          </li>
+          {% endif %}
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Please arrive 10 minutes early for your appointment</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span>If you need to reschedule, please contact us at least 24 hours in advance</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'appointment:my_appointments' %}" 
+           class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+          View My Appointments
+        </a>
+        
+        <a href="{% url 'appointment:booking_home' %}" 
+           class="flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Book Another Appointment
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

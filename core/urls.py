@@ -40,7 +40,7 @@ urlpatterns = [
     path("licensing/", views.licensing_view, name="licensing"),
     path("cookie/", views.cookie_view, name="cookie"),
     path("contact/", views.contact_view, name="contact"),
-    # path('booking/', include('appointment.urls')), 
+    path('booking/', include('appointment.urls')),  # New appointment scheduling system
 ]
 
 urlpatterns += static(settings.CELERY_LOGS_URL, document_root=settings.CELERY_LOGS_DIR)

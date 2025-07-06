@@ -49,14 +49,24 @@
                       </li>
                       {% if is_patient %}
                         <li>
-                          <a href="{% url 'appointments:appointment_list' %}" 
-                              class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'appointments' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
+                          <a href="{% url 'appointment:booking_home' %}" 
+                              class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'appointment' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
                               <svg class="w-6 h-6 text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
                                   fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path
                                       d="M8 3v1H5.5A2.5 2.5 0 003 6.5v11A2.5 2.5 0 005.5 20H18.5A2.5 2.5 0 0021 17.5v-11A2.5 2.5 0 0018.5 3H16V2h-2v1H10V2H8v1zM5.5 5H8v1h8V5h2.5A1.5 1.5 0 0120 6.5V8H4V6.5A1.5 1.5 0 015.5 5zm14 4v9.5a1.5 1.5 0 01-1.5 1.5H5.5A1.5 1.5 0 014 18.5V9h15.5z"></path>
                               </svg>
-                              <span class="ml-3">Appointments</span>
+                              <span class="ml-3">Book Appointment</span>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="{% url 'appointment:my_appointments' %}" 
+                              class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700 {% if 'my_appointments' in segment %} bg-gray-100 dark:bg-gray-700 {% endif %}">
+                              <svg class="w-6 h-6 text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+                                  fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 5h10v10H5V5zm2 2v2h2V7H7zm4 0v2h2V7h-2zm-4 4v2h2v-2H7zm4 0v2h2v-2h-2z"></path>
+                              </svg>
+                              <span class="ml-3">My Appointments</span>
                           </a>
                         </li>
 

@@ -1,0 +1,180 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <div class="mb-8">
+      <nav class="flex mb-4" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+          <li class="inline-flex items-center">
+            <a href="{% url 'appointment:booking_home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+              </svg>
+              Booking Home
+            </a>
+          </li>
+          <li aria-current="page">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ service.name }}</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Book {{ service.name }}</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">Schedule your appointment for {{ service.name }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Service Information -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Service Details</h2>
+          
+          {% if service.image %}
+          <div class="w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4 overflow-hidden">
+            <img src="{{ service.get_image_url }}" alt="{{ service.name }}" class="w-full h-full object-cover">
+          </div>
+          {% endif %}
+          
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ service.name }}</h3>
+              {% if service.description %}
+              <p class="text-gray-600 dark:text-gray-400 mt-2">{{ service.description }}</p>
+              {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Duration</span>
+                <p class="text-lg text-gray-900 dark:text-white">{{ service.get_duration }}</p>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Price</span>
+                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ service.get_price_text }}</p>
+              </div>
+            </div>
+            
+            {% if service.down_payment > 0 %}
+            <div>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Down Payment</span>
+              <p class="text-lg text-gray-900 dark:text-white">{{ service.down_payment }} {{ service.currency }}</p>
+            </div>
+            {% endif %}
+            
+            {% if service.allow_rescheduling %}
+            <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div class="flex">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div class="ml-3">
+                  <p class="text-sm text-blue-700 dark:text-blue-300">
+                    This service allows rescheduling up to {{ service.reschedule_limit }} times.
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="p-6">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Book Your Appointment</h2>
+          
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Staff Selection -->
+            {% if staff_members %}
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Select Staff Member
+              </label>
+              <select name="staff_member" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required>
+                <option value="">Choose a staff member</option>
+                {% for staff in staff_members %}
+                <option value="{{ staff.id }}">{{ staff.get_staff_member_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            
+            <!-- Date Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Preferred Date
+              </label>
+              <input type="date" name="date" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required>
+            </div>
+            
+            <!-- Time Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Preferred Time
+              </label>
+              <input type="time" name="time" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required>
+            </div>
+            
+            <!-- Phone Number -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Phone Number
+              </label>
+              <input type="tel" name="phone" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Your phone number">
+            </div>
+            
+            <!-- Address -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Address
+              </label>
+              <textarea name="address" rows="3" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Your address"></textarea>
+            </div>
+            
+            <!-- Additional Info -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Additional Information
+              </label>
+              <textarea name="additional_info" rows="3" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Any additional information or special requests"></textarea>
+            </div>
+            
+            <!-- Reminder -->
+            <div class="flex items-center">
+              <input type="checkbox" name="want_reminder" id="want_reminder" class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500">
+              <label for="want_reminder" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                Send me a reminder before the appointment
+              </label>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="pt-4">
+              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                Book Appointment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Set minimum date to today
+document.addEventListener('DOMContentLoaded', function() {
+  const dateInput = document.querySelector('input[type="date"]');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
+});
+</script>
+{% endblock %}

@@ -74,8 +74,8 @@ INSTALLED_APPS = [
     "home",
     "apps.common",
     "apps.users",
-    # 'appointment',
-    "appointments",
+    "appointment",  # New appointment scheduling system
+    "appointments",  # Legacy appointment system
     "crispy_bootstrap4",
     "crispy_forms",
     "crispy_tailwind",
@@ -115,6 +115,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "appointments.context_processors.inbox_data",
+                "appointment.context_processors.appointment_data",
             ],
         },
     },

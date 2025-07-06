@@ -1,0 +1,104 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<main>
+  <div class="px-4 pt-6">
+    <div class="max-w-2xl mx-auto">
+      <!-- Warning Message -->
+      <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center">
+          <svg class="w-8 h-8 text-red-600 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <h1 class="text-lg font-semibold text-red-800 dark:text-red-200">Cancel Appointment</h1>
+            <p class="text-sm text-red-700 dark:text-red-300">Are you sure you want to cancel this appointment?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Details -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Appointment Details</h2>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Service</h3>
+              <p class="text-lg text-gray-900 dark:text-white">{{ appointment.appointment_request.service.name }}</p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Date & Time</h3>
+              <p class="text-lg text-gray-900 dark:text-white">
+                {{ appointment.appointment_request.date|date:"F d, Y" }}
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ appointment.appointment_request.start_time|time:"g:i A" }}
+              </p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Staff Member</h3>
+              <p class="text-lg text-gray-900 dark:text-white">{{ appointment.appointment_request.staff_member.get_staff_member_name }}</p>
+            </div>
+            
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Appointment ID</h3>
+              <p class="text-lg text-gray-900 dark:text-white font-mono">{{ appointment.id }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancellation Policy -->
+      <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-3">Cancellation Policy</h3>
+        <ul class="space-y-2 text-sm text-yellow-700 dark:text-yellow-300">
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Appointments should be canceled at least 24 hours in advance</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Late cancellations may be subject to a cancellation fee</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+            <span>Once canceled, this appointment slot may become available to other patients</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <form method="post" class="flex-1">
+          {% csrf_token %}
+          <button type="submit" 
+                  class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Yes, Cancel Appointment
+          </button>
+        </form>
+        
+        <a href="{% url 'appointment:my_appointments' %}" 
+           class="flex-1 flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Keep Appointment
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

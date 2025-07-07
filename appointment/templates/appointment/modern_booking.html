@@ -357,7 +357,9 @@
 </main>
 {% endblock %}
 
-{% block extrajs %}
+{% block extra_js %}
+    <!-- Load required dependencies in correct order -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"
             integrity="sha512-3CuraBvy05nIgcoXjVN33mACRyI89ydVHg7y/HMN9wcTVbHeur0SeBzweSd/rxySapO7Tmfu68+JlKkLTnDFNg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -368,59 +370,83 @@
             integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
-    <!-- jQuery for compatibility with appointments.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Define global variables BEFORE loading appointments.js
+        var timezone = "{{ timezoneTxt }}";
+        var locale = "{{ locale }}";
+        var availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
+        var requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
+        var getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
+        var serviceId = "{{ service.id }}";
+        var serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
+        var rescheduledDate = "{{ rescheduled_date }}";
+        var appointmentRequestId = "{{ ar_id_request }}";
+        var appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
+        var appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
+        
+        // Translation strings
+        var requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
+        var noStaffMemberSelectedTxt = "{% trans 'No staff member selected.' %}";
+        var selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
+        var dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
+        var selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";
+        
+        console.log('Global variables defined');
+        console.log('Service ID:', serviceId);
+        console.log('Timezone:', timezone);
+    </script>
+    
+    <!-- Load the appointment scripts after variables are defined -->
+    <script src="{% static 'js/js-utils.js' %}"></script>
+    <script src="{% static 'js/appointments.js' %}"></script>
     
     <script>
-        const timezone = "{{ timezoneTxt }}";
-        const locale = "{{ locale }}";
-        const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
-        const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
-        const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
-        const serviceId = "{{ service.id }}";
-        const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
-        const rescheduledDate = "{{ rescheduled_date }}";
-        const appointmentRequestId = "{{ ar_id_request }}";
-        const appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
-        const appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
-        
-        // Ensure calendar is initialized after DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
+        // Additional calendar setup after all scripts load
+        $(document).ready(function() {
+            console.log('Document ready, checking calendar...');
+            
             const calendarEl = document.getElementById('calendar');
-            console.log('Calendar element found:', calendarEl);
-            
-            if (!calendarEl) {
-                console.error('Calendar element not found!');
-                return;
+            if (calendarEl) {
+                console.log('Calendar element exists');
+                
+                // Ensure the calendar element is visible and styled
+                calendarEl.style.minHeight = '400px';
+                calendarEl.style.width = '100%';
+                calendarEl.style.display = 'block';
+                calendarEl.style.visibility = 'visible';
+                
+                // Check if calendar was initialized
+                setTimeout(function() {
+                    if (typeof calendar !== 'undefined' && calendar) {
+                        console.log('Calendar object exists, rendering...');
+                        try {
+                            calendar.render();
+                            console.log('Calendar rendered successfully');
+                        } catch (e) {
+                            console.error('Error rendering calendar:', e);
+                        }
+                    } else {
+                        console.error('Calendar object not found');
+                        
+                        // Fallback: create a simple calendar
+                        if (typeof FullCalendar !== 'undefined') {
+                            console.log('Creating fallback calendar...');
+                            var fallbackCalendar = new FullCalendar.Calendar(calendarEl, {
+                                initialView: 'dayGridMonth',
+                                height: 'auto',
+                                headerToolbar: {
+                                    left: 'title',
+                                    right: 'prev,today,next'
+                                }
+                            });
+                            fallbackCalendar.render();
+                            console.log('Fallback calendar created');
+                        }
+                    }
+                }, 500);
+            } else {
+                console.error('Calendar element not found');
             }
-            
-            // Ensure calendar has proper styling
-            calendarEl.style.minHeight = '400px';
-            calendarEl.style.width = '100%';
-            calendarEl.style.backgroundColor = 'white';
-            calendarEl.style.border = '1px solid #e0e0e0';
-            calendarEl.style.borderRadius = '8px';
-            calendarEl.style.padding = '10px';
-            
-            console.log('Calendar container setup complete');
-            
-            // Add a visible indicator that the calendar should be here
-            if (!calendarEl.innerHTML.trim()) {
-                calendarEl.innerHTML = '<div style="padding: 20px; text-align: center; border: 2px dashed #ccc; background: #f9f9f9; border-radius: 8px; color: #666;">Loading calendar... Please wait.</div>';
-            }
-            
-            // Force calendar to be visible
-            calendarEl.style.display = 'block';
-            calendarEl.style.visibility = 'visible';
         });
     </script>
-    <script>
-        const requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
-        const noStaffMemberSelectedTxt = "{% trans 'No staff member selected.' %}";
-        const selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
-        const dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
-        const selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";
-    </script>
-    <script src="{% static 'js/appointments.js' %}"></script>
-    <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

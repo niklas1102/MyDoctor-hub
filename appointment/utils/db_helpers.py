@@ -118,12 +118,50 @@ def create_and_save_appointment(ar, client_data: dict, appointment_data: dict, r
     :return: The newly created appointment.
     """
     user = get_user_by_email(client_data['email'])
+    
+    # Create the appointment in the new system
     appointment = Appointment.objects.create(
             client=user, appointment_request=ar,
             **appointment_data
     )
     appointment.save()
     logger.info(f"New appointment created: {appointment.to_dict()}")
+    
+    # Also create a corresponding appointment in the legacy system for doctor confirmation
+    # This ensures doctors can see and confirm appointments from both systems
+    try:
+        # Get the doctor (staff member) from the appointment request
+        doctor = ar.staff_member.user if hasattr(ar.staff_member, 'user') else None
+        
+        if doctor:
+            # Import here to avoid circular import
+            from appointments.models import Appointment as LegacyAppointment
+            
+            # Create appointment datetime by combining date and time
+            appointment_datetime = combine_date_and_time(ar.date, ar.start_time)
+            
+            # Create legacy appointment with pending status
+            legacy_appointment = LegacyAppointment.objects.create(
+                doctor=doctor,
+                patient=user,
+                date=appointment_datetime,
+                reason=ar.reason or "No reason provided",
+                status="pending"  # This ensures doctor confirmation is required
+            )
+            
+            logger.info(f"Created legacy appointment {legacy_appointment.id} for doctor confirmation")
+            
+            # Store the legacy appointment ID in the new appointment for reference
+            appointment.legacy_appointment_id = legacy_appointment.id
+            appointment.save()
+            
+        else:
+            logger.warning(f"Could not find doctor for appointment {appointment.id}")
+            
+    except Exception as e:
+        logger.error(f"Error creating legacy appointment: {e}", exc_info=True)
+        # Continue with the new system appointment even if legacy creation fails
+    
     if appointment.want_reminder:
         logger.info(f"User wants a reminder for appointment {appointment.id}, scheduling it...")
         if DJANGO_Q_AVAILABLE:

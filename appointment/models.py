@@ -447,6 +447,7 @@ class Appointment(models.Model):
     paid = models.BooleanField(default=False)
     amount_to_pay = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     id_request = models.CharField(max_length=100, blank=True, null=True)
+    legacy_appointment_id = models.IntegerField(blank=True, null=True, help_text=_("ID of the corresponding legacy appointment for doctor confirmation"))
 
     # meta datas
     created_at = models.DateTimeField(auto_now_add=True)
@@ -618,6 +619,39 @@ class Appointment(models.Model):
             "amount_to_pay": self.amount_to_pay,
             "id_request": self.id_request,
         }
+
+    def get_legacy_appointment(self):
+        """Get the corresponding legacy appointment for doctor confirmation."""
+        if self.legacy_appointment_id:
+            try:
+                from appointments.models import Appointment as LegacyAppointment
+                return LegacyAppointment.objects.get(id=self.legacy_appointment_id)
+            except LegacyAppointment.DoesNotExist:
+                return None
+        return None
+
+    def get_status(self):
+        """Get the appointment status from the legacy system."""
+        legacy_appointment = self.get_legacy_appointment()
+        return legacy_appointment.status if legacy_appointment else "pending"
+
+    def is_confirmed(self):
+        """Check if the appointment has been confirmed by the doctor."""
+        return self.get_status() == "confirmed"
+
+    def is_pending(self):
+        """Check if the appointment is pending confirmation."""
+        return self.get_status() == "pending"
+
+    def is_canceled(self):
+        """Check if the appointment has been canceled."""
+        return self.get_status() == "canceled"
+
+    def get_doctor(self):
+        """Get the doctor (staff member) for this appointment."""
+        if hasattr(self.appointment_request.staff_member, 'user'):
+            return self.appointment_request.staff_member.user
+        return None
 
 
 class Config(models.Model):

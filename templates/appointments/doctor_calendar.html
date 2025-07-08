@@ -79,16 +79,39 @@
         {
           title: '{{ appointment.patient.username }} - {{ appointment.reason }}',
           start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+          color: '{% if appointment.status == "confirmed" %}#10b981{% elif appointment.status == "pending" %}#f59e0b{% else %}#ef4444{% endif %}',
           extendedProps: {
             patientName: '{{ appointment.patient.profile.full_name|default:appointment.patient.username }}',
             conditions: '{{ appointment.patient.profile.pre_existing_conditions|default:"No data" }}',
-            // ...add other needed patient fields...
+            status: '{{ appointment.status }}',
+            id: '{{ appointment.id }}',
+            type: 'legacy'
           }
         },
         {% else %}
         {
           title: '{{ appointment.doctor.username }} - {{ appointment.reason }}',
           start: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+          color: '{% if appointment.status == "confirmed" %}#10b981{% elif appointment.status == "pending" %}#f59e0b{% else %}#ef4444{% endif %}',
+        },
+        {% endif %}
+        {% endfor %}
+        {% for appointment in new_appointments %}
+        {% if is_doctor %}
+        {
+          title: '{{ appointment.client.username }} - {{ appointment.get_service_name }}',
+          start: '{{ appointment.get_appointment_date|date:"Y-m-d" }}T{{ appointment.appointment_request.start_time|time:"H:i:s" }}',
+          end: '{{ appointment.get_appointment_date|date:"Y-m-d" }}T{{ appointment.appointment_request.end_time|time:"H:i:s" }}',
+          color: '{% if appointment.is_confirmed %}#10b981{% elif appointment.is_pending %}#f59e0b{% else %}#ef4444{% endif %}',
+          extendedProps: {
+            patientName: '{{ appointment.client.get_full_name|default:appointment.client.username }}',
+            service: '{{ appointment.get_service_name }}',
+            reason: '{{ appointment.appointment_request.reason|default:"No reason provided" }}',
+            status: '{{ appointment.get_status }}',
+            id: '{{ appointment.id }}',
+            legacyId: '{{ appointment.legacy_appointment_id }}',
+            type: 'new'
+          }
         },
         {% endif %}
         {% endfor %}

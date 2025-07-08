@@ -55,20 +55,35 @@ def service_booking(request, service_id):
 @login_required
 def my_appointments(request):
     """
-    Display user's appointments from both systems.
+    Display user's appointments from both systems unified.
     """
     # Get appointments from new system
     new_appointments = Appointment.objects.filter(client=request.user).order_by('-created_at')
     
-    # Get appointments from legacy system
-    legacy_appointments = LegacyAppointment.objects.filter(
-        Q(patient=request.user) | Q(doctor=request.user)
+    # Get appointments from legacy system where user is patient
+    patient_appointments = LegacyAppointment.objects.filter(
+        patient=request.user
     ).order_by('-created_at')
     
-    context = {
+    # If user is a doctor, also show appointments where they are the doctor
+    if request.user.groups.filter(name='Doctor').exists():
+        doctor_appointments = LegacyAppointment.objects.filter(
+            doctor=request.user
+        ).order_by('-created_at')
+    else:
+        doctor_appointments = []
+    
+    # Combine all appointments into a single list
+    all_appointments = {
         'new_appointments': new_appointments,
-        'legacy_appointments': legacy_appointments,
+        'patient_appointments': patient_appointments,
+        'doctor_appointments': doctor_appointments,
+    }
+    
+    context = {
+        'appointments': all_appointments,
         'segment': 'appointments',
+        'is_doctor': request.user.groups.filter(name='Doctor').exists(),
     }
     
     return render(request, 'appointment/my_appointments.html', context)

@@ -1,0 +1,198 @@
+{% extends "base_templates/appointment_base.html" %}
+{% load static %}
+
+{% block appointment_title %}Doctor Calendar{% endblock %}
+
+{% block appointment_css %}
+    <link href="{% static 'css/appt-common.css' %}" rel="stylesheet">
+    <link href="{% static 'css/appointments.css' %}" rel="stylesheet">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' />
+{% endblock %}
+
+{% block appointment_body %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Appointment Calendar</h1>
+        <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Confirmed</span>
+            </div>
+            <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Pending</span>
+            </div>
+            <div class="flex items-center space-x-1">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Cancelled</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div id="appointmentModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
+                            Appointment Details
+                        </h3>
+                        <div class="mt-2">
+                            <div class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                                <div><strong>Patient:</strong> <span id="modal-patient"></span></div>
+                                <div><strong>Date:</strong> <span id="modal-date"></span></div>
+                                <div><strong>Time:</strong> <span id="modal-time"></span></div>
+                                <div><strong>Status:</strong> <span id="modal-status"></span></div>
+                                <div><strong>Reason:</strong> <span id="modal-reason"></span></div>
+                                <div id="modal-service-container" class="hidden"><strong>Service:</strong> <span id="modal-service"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="confirm-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Confirm Appointment
+                </button>
+                <button type="button" id="join-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Join Consultation
+                </button>
+                <button type="button" id="close-modal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block appointment_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var modal = document.getElementById('appointmentModal');
+    var closeModal = document.getElementById('close-modal');
+    var confirmBtn = document.getElementById('confirm-btn');
+    var joinBtn = document.getElementById('join-btn');
+    var currentAppointment = null;
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        nowIndicator: true,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        height: 'auto',
+        events: {{ calendar_events|safe }},
+        eventClick: function(info) {
+            var event = info.event;
+            var props = event.extendedProps;
+            
+            // Store current appointment info
+            currentAppointment = {
+                id: props.appointment_id,
+                legacyId: props.legacy_id,
+                type: props.type,
+                status: props.status
+            };
+            
+            // Populate modal
+            document.getElementById('modal-patient').textContent = props.patient;
+            document.getElementById('modal-date').textContent = event.start.toLocaleDateString();
+            document.getElementById('modal-time').textContent = event.start.toLocaleTimeString();
+            document.getElementById('modal-status').textContent = props.status.charAt(0).toUpperCase() + props.status.slice(1);
+            document.getElementById('modal-reason').textContent = props.reason || 'No reason provided';
+            
+            // Show/hide service info for new appointments
+            if (props.type === 'new') {
+                document.getElementById('modal-service-container').classList.remove('hidden');
+                document.getElementById('modal-service').textContent = props.service;
+            } else {
+                document.getElementById('modal-service-container').classList.add('hidden');
+            }
+            
+            // Show/hide action buttons based on status
+            if (props.status === 'pending') {
+                confirmBtn.classList.remove('hidden');
+                joinBtn.classList.add('hidden');
+            } else if (props.status === 'confirmed') {
+                confirmBtn.classList.add('hidden');
+                joinBtn.classList.remove('hidden');
+            } else {
+                confirmBtn.classList.add('hidden');
+                joinBtn.classList.add('hidden');
+            }
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        },
+        eventDidMount: function(info) {
+            // Add tooltip
+            info.el.setAttribute('title', info.event.extendedProps.patient + ' - ' + info.event.extendedProps.status);
+        }
+    });
+
+    calendar.render();
+
+    // Close modal functionality
+    closeModal.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+
+    // Confirm appointment
+    confirmBtn.addEventListener('click', function() {
+        if (currentAppointment) {
+            var appointmentId = currentAppointment.legacyId || currentAppointment.id;
+            
+            fetch('{% url "appointments:confirm_appointment" 0 %}'.replace('0', appointmentId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Refresh to show updated status
+                } else {
+                    alert('Error confirming appointment: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error confirming appointment');
+            });
+        }
+    });
+
+    // Join consultation
+    joinBtn.addEventListener('click', function() {
+        if (currentAppointment) {
+            var appointmentId = currentAppointment.legacyId || currentAppointment.id;
+            window.location.href = '{% url "appointments:join_consultation" 0 %}'.replace('0', appointmentId);
+        }
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -15,3 +15,319 @@
         padding: .3em .45em !important;
     }
 }
+
+/* Enhanced calendar styling */
+.fc-header-toolbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    margin-bottom: 0;
+}
+
+.fc-header-toolbar .fc-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.fc-header-toolbar .fc-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.fc-header-toolbar .fc-button:active {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.fc-header-toolbar .fc-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fc-header-toolbar .fc-button-primary {
+    background: #4f46e5;
+    border-color: #4f46e5;
+}
+
+.fc-header-toolbar .fc-button-primary:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+}
+
+/* Calendar body styling */
+.fc-scrollgrid {
+    border: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.fc-col-header {
+    background: #f8fafc;
+    border: none;
+    font-weight: 600;
+    color: #475569;
+}
+
+.fc-daygrid-day {
+    border: 1px solid #e2e8f0;
+    transition: background-color 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+    background: #f1f5f9;
+}
+
+.fc-daygrid-day.fc-day-today {
+    background: #f0f9ff;
+    border-color: #0ea5e9;
+}
+
+.fc-event {
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.375rem;
+    margin: 0.125rem 0;
+    transition: all 0.2s ease;
+}
+
+.fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Appointment slot styling */
+.djangoAppt_slot-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.djangoAppt_appointment-slot {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    list-style: none;
+    font-weight: 500;
+    color: #475569;
+}
+
+.djangoAppt_appointment-slot:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.djangoAppt_appointment-slot.selected {
+    background: #3b82f6;
+    border-color: #2563eb;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+}
+
+.djangoAppt_appointment-slot.selected:hover {
+    background: #2563eb;
+    border-color: #1d4ed8;
+}
+
+/* Form styling enhancements */
+.appointment-form {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.appointment-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.appointment-form label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.appointment-form input[type="text"],
+.appointment-form input[type="email"],
+.appointment-form input[type="tel"],
+.appointment-form textarea,
+.appointment-form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.appointment-form input:focus,
+.appointment-form textarea:focus,
+.appointment-form select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button styling */
+.btn-submit-appointment {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.btn-submit-appointment:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3);
+}
+
+.btn-submit-appointment:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-submit-appointment:active {
+    transform: translateY(0);
+}
+
+/* Staff selection styling */
+.staff-selection {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.staff-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.staff-option:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.staff-option.selected {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .djangoAppt_page-body {
+        flex-direction: column;
+    }
+    
+    .djangoAppt_service-description {
+        margin-left: 0;
+        margin-top: 1rem;
+    }
+    
+    .djangoAppt_slot-list {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.375rem;
+    }
+    
+    .appointment-form {
+        padding: 1rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .fc-col-header {
+        background: #374151;
+        color: #d1d5db;
+    }
+    
+    .fc-daygrid-day {
+        background: #1f2937;
+        border-color: #4b5563;
+    }
+    
+    .fc-daygrid-day:hover {
+        background: #374151;
+    }
+    
+    .fc-daygrid-day.fc-day-today {
+        background: #1e3a8a;
+        border-color: #3b82f6;
+    }
+    
+    .appointment-form {
+        background: #1f2937;
+        color: #d1d5db;
+    }
+    
+    .appointment-form label {
+        color: #d1d5db;
+    }
+    
+    .appointment-form input,
+    .appointment-form textarea,
+    .appointment-form select {
+        background: #374151;
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+    
+    .djangoAppt_appointment-slot {
+        background: #374151;
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+    
+    .djangoAppt_appointment-slot:hover {
+        background: #4b5563;
+        border-color: #6b7280;
+    }
+    
+    .staff-selection {
+        background: #374151;
+        border-color: #4b5563;
+    }
+    
+    .staff-option {
+        background: #1f2937;
+        border-color: #4b5563;
+        color: #d1d5db;
+    }
+    
+    .staff-option:hover {
+        background: #374151;
+        border-color: #6b7280;
+    }
+}

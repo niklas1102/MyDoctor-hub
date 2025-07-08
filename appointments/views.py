@@ -27,9 +27,11 @@ from .models import (
 )
 from .tasks import delete_document_from_cloud, delete_encounter_from_cloud, delete_immunization_from_cloud, delete_lab_result_from_cloud, delete_prescription_from_cloud, push_document_to_cloud, push_encounter_to_cloud, push_immunization_to_cloud, push_lab_result_to_cloud, push_patient_to_cloud, push_prescription_to_cloud, update_document_in_cloud, update_encounter_in_cloud, update_immunization_in_cloud, update_lab_result_in_cloud, update_patient_in_cloud, delete_patient_from_cloud, update_prescription_in_cloud 
 import json
+import logging
 from datetime import datetime, timedelta
 from django.utils import timezone
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -126,11 +128,33 @@ def cancel_appointment(request, appointment_id):
 @login_required(login_url="/users/signin/")
 @user_passes_test(is_doctor)
 def doctor_appointments(request):
-    appointments = Appointment.objects.filter(doctor=request.user).select_related(
-        "patient"
-    )
+    # Get appointments from legacy system
+    legacy_appointments = Appointment.objects.filter(doctor=request.user).select_related("patient")
+    
+    # Get appointments from new system where the doctor is the staff member
+    try:
+        from appointment.models import Appointment as NewAppointment
+        from appointment.models import StaffMember
+        
+        # Find staff member record for the current doctor
+        staff_member = None
+        try:
+            staff_member = StaffMember.objects.get(user=request.user)
+        except StaffMember.DoesNotExist:
+            pass
+        
+        new_appointments = []
+        if staff_member:
+            new_appointments = NewAppointment.objects.filter(
+                appointment_request__staff_member=staff_member
+            ).select_related("client", "appointment_request")
+            
+    except ImportError:
+        new_appointments = []
+    
     context = {
-        "appointments": appointments,
+        "appointments": legacy_appointments,
+        "new_appointments": new_appointments,
         "user": request.user,
         "is_doctor": request.user.groups.filter(name="Doctor").exists(),
         "is_patient": request.user.groups.filter(name="Patient").exists(),
@@ -141,11 +165,33 @@ def doctor_appointments(request):
 @login_required(login_url="/users/signin/")
 @user_passes_test(is_doctor)
 def doctor_calendar(request):
-    appointments = Appointment.objects.filter(doctor=request.user).select_related(
-        "patient"
-    )
+    # Get appointments from legacy system
+    legacy_appointments = Appointment.objects.filter(doctor=request.user).select_related("patient")
+    
+    # Get appointments from new system where the doctor is the staff member
+    try:
+        from appointment.models import Appointment as NewAppointment
+        from appointment.models import StaffMember
+        
+        # Find staff member record for the current doctor
+        staff_member = None
+        try:
+            staff_member = StaffMember.objects.get(user=request.user)
+        except StaffMember.DoesNotExist:
+            pass
+        
+        new_appointments = []
+        if staff_member:
+            new_appointments = NewAppointment.objects.filter(
+                appointment_request__staff_member=staff_member
+            ).select_related("client", "appointment_request")
+            
+    except ImportError:
+        new_appointments = []
+    
     context = {
-        "appointments": appointments,
+        "appointments": legacy_appointments,
+        "new_appointments": new_appointments,
         "user": request.user,
         "is_doctor": request.user.groups.filter(name="Doctor").exists(),
         "is_patient": request.user.groups.filter(name="Patient").exists(),
@@ -596,6 +642,17 @@ def confirm_appointment(request, appointment_id):
     # Confirm the appointment
     appointment.status = "confirmed"
     appointment.save()
+    
+    # If this is a legacy appointment created from the new system, update the status there too
+    try:
+        from appointment.models import Appointment as NewAppointment
+        new_appointments = NewAppointment.objects.filter(legacy_appointment_id=appointment.id)
+        for new_appointment in new_appointments:
+            # The new system doesn't have a status field, so we rely on the legacy system
+            # But we could add logging or other actions here
+            logger.info(f"Confirmed appointment {appointment.id} affects new system appointment {new_appointment.id}")
+    except ImportError:
+        pass
     
     # Send confirmation email to patient
     subject = "Appointment Confirmed"

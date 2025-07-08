@@ -320,8 +320,8 @@ def appointment_request_submit(request):
                                         account_details=None, 
                                         request=request)
                     
-                    # Add success message
-                    messages.success(request, _("Your appointment has been successfully booked!"))
+                    # Add success message indicating pending confirmation
+                    messages.success(request, _("Your appointment request has been submitted successfully and is pending doctor confirmation!"))
                     
                     # Redirect to confirmation page
                     return redirect('appointment:my_appointments')

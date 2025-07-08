@@ -73,6 +73,14 @@ calendar.setOption('locale', locale);
 
 $(document).ready(function () {
     staffId = $('#staff_id').val() || null;
+    
+    // Initialize submit button state
+    if (staffId === 'none' || staffId === null || staffId === undefined) {
+        $('.btn-submit-appointment').attr('disabled', 'disabled');
+    } else {
+        $('.btn-submit-appointment').removeAttr('disabled');
+    }
+    
     calendar.render();
     const currentDate = rescheduledDate || moment.tz(timezone).format('YYYY-MM-DD');
     getAvailableSlots(currentDate, staffId);
@@ -93,7 +101,24 @@ body.on('click', '.djangoAppt_btn-request-next-slot', function () {
     requestNextAvailableSlot(serviceId);
 })
 
-body.on('click', '.btn-submit-appointment', function () {
+body.on('click', '.btn-submit-appointment', function (e) {
+    e.preventDefault(); // Prevent default form submission
+    
+    // Check if staff member is selected
+    const staffMemberValue = $('#staff_id').val();
+    if (!staffMemberValue || staffMemberValue === 'none') {
+        alert('Please select a staff member first.');
+        return;
+    }
+    
+    // Check if reason is provided (required field)
+    const reason = $('#reason').val() || '';
+    if (!reason.trim()) {
+        alert('Please provide a reason for your appointment.');
+        $('#reason').focus();
+        return;
+    }
+    
     const selectedSlot = $('.djangoAppt_appointment-slot.selected').text();
     const selectedDate = $('.djangoAppt_date_chosen').text();
     if (!selectedSlot || !selectedDate) {
@@ -126,7 +151,18 @@ body.on('click', '.btn-submit-appointment', function () {
         form.append($('<input>', {type: 'hidden', name: 'start_time', value: startTime}));
         form.append($('<input>', {type: 'hidden', name: 'end_time', value: endTime}));
         form.append($('<input>', {type: 'hidden', name: 'service', value: serviceId}));
+        form.append($('<input>', {type: 'hidden', name: 'staff_member', value: staffMemberValue}));
         form.append($('<input>', {type: 'hidden', name: 'reason_for_rescheduling', value: reasonForRescheduling}));
+        
+        // Get additional info and reminder preference from the form
+        const additionalInfo = $('#additional_info').val() || '';
+        const wantReminder = $('#want_reminder').is(':checked') ? 'true' : 'false';
+        
+        // Add these fields to the form submission
+        form.append($('<input>', {type: 'hidden', name: 'reason', value: reason}));
+        form.append($('<input>', {type: 'hidden', name: 'additional_info', value: additionalInfo}));
+        form.append($('<input>', {type: 'hidden', name: 'want_reminder', value: wantReminder}));
+        
         form.submit();
     } else {
         const warningContainer = $('.warning-message');
@@ -138,6 +174,14 @@ body.on('click', '.btn-submit-appointment', function () {
 
 $('#staff_id').on('change', function () {
     staffId = $(this).val() || null;  // If staffId is an empty string, set it to null
+    
+    // Enable/disable submit button based on staff selection
+    if (staffId === 'none' || staffId === null || staffId === undefined) {
+        $('.btn-submit-appointment').attr('disabled', 'disabled');
+    } else {
+        $('.btn-submit-appointment').removeAttr('disabled');
+    }
+    
     let currentDate = null
     if (selectedDate == null) {
         currentDate = moment.tz(timezone).format('YYYY-MM-DD');
@@ -226,9 +270,9 @@ function getAvailableSlots(selectedDate, staffId = null) {
     // Check if 'staffId' is 'none', null, or undefined and display an error message
     if (staffId === 'none' || staffId === null || staffId === undefined) {
         console.log('No staff ID provided, displaying error message.');
-        const errorMessage = $('<p class="djangoAppt_no-availability-text">' + noStaffMemberSelectedTxt + '</p>');
+        const errorMessage = $('<p class="djangoAppt_no-availability-text" style="color: #dc3545; font-weight: bold;">' + noStaffMemberSelectedTxt + '</p>');
         errorMessageContainer.append(errorMessage);
-        // Optionally disable the "submit" button here
+        // Disable the "submit" button
         $('.btn-submit-appointment').attr('disabled', 'disabled');
         return; // Exit the function early
     }
@@ -307,9 +351,30 @@ function getAvailableSlots(selectedDate, staffId = null) {
                     // Enable the submit button
                     $('.btn-submit-appointment').removeAttr('disabled');
 
-                    // Continue with the existing logic
+                    // Get the selected slot and update the display
                     const selectedSlot = $(this).text();
                     $('#service-datetime-chosen').text(data.date_chosen + ' ' + selectedSlot);
+                    
+                    // Update the hidden form fields
+                    $('#selected_date').val(selectedDate);
+                    
+                    // Parse the time from the selected slot
+                    const timeParts = selectedSlot.split(' - ');
+                    if (timeParts.length >= 1) {
+                        const startTime = timeParts[0].trim();
+                        $('#selected_start_time').val(convertTo24Hour(startTime));
+                        
+                        // Calculate end time if not explicitly provided
+                        if (timeParts.length > 1) {
+                            const endTime = timeParts[1].trim();
+                            $('#selected_end_time').val(convertTo24Hour(endTime));
+                        } else {
+                            // Calculate end time based on service duration
+                            const startTimeMoment = moment(startTime, 'hh:mm A');
+                            const endTimeMoment = moment(startTimeMoment).add(serviceDuration, 'minutes');
+                            $('#selected_end_time').val(endTimeMoment.format('HH:mm'));
+                        }
+                    }
                 });
             }
             // Update the date chosen
@@ -372,3 +437,34 @@ function requestNextAvailableSlot(serviceId) {
         }
     });
 }
+
+// Add form submission handler to validate staff member selection
+$(document).ready(function() {
+    $('.appointment-form').on('submit', function(e) {
+        // Check if a staff member is selected
+        const staffId = $('#staff_id').val();
+        if (staffId === 'none' || staffId === null || staffId === undefined) {
+            e.preventDefault(); // Prevent form submission
+            // Display an error message
+            if ($('.error-message .djangoAppt_no-availability-text').length === 0) {
+                const errorMessage = $('<p class="djangoAppt_no-availability-text" style="color: #dc3545; font-weight: bold;">' + noStaffMemberSelectedTxt + '</p>');
+                $('.error-message').append(errorMessage);
+            }
+            // Ensure the submit button is disabled
+            $('.btn-submit-appointment').attr('disabled', 'disabled');
+            // Scroll to error message
+            $('.error-message')[0].scrollIntoView({ behavior: 'smooth' });
+            return false;
+        }
+        
+        // Check if a time slot is selected
+        if ($('.djangoAppt_appointment-slot.selected').length === 0) {
+            e.preventDefault(); // Prevent form submission
+            alert(selectTimeSlotWarningTxt);
+            return false;
+        }
+        
+        // All validation passed, form can be submitted
+        return true;
+    });
+});

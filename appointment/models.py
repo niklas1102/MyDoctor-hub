@@ -291,6 +291,12 @@ class AppointmentRequest(models.Model):
     payment_type = models.CharField(max_length=4, choices=PAYMENT_TYPES, default='full')
     id_request = models.CharField(max_length=100, blank=True, null=True)
     reschedule_attempts = models.PositiveIntegerField(default=0)
+    reason = models.TextField(
+        blank=True, 
+        null=True, 
+        max_length=500,
+        help_text=_("Reason for the appointment or any specific concerns.")
+    )
 
     # meta data
     created_at = models.DateTimeField(auto_now_add=True)

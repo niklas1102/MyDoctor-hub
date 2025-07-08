@@ -224,6 +224,33 @@ a {
     }
 }
 
+/* Integration with main layout */
+@media (min-width: 1024px) {
+    .djangoAppt_main-container {
+        margin: 10px auto;
+        max-width: none;
+        padding: 15px;
+    }
+}
+
+/* Ensure calendar fits well in the main layout */
+.djangoAppt_page-body {
+    display: flex;
+    flex-direction: row;
+    margin-top: 30px;
+}
+
+@media (max-width: 1200px) {
+    .djangoAppt_page-body {
+        flex-direction: column;
+    }
+    
+    .djangoAppt_service-description {
+        margin-left: 0;
+        margin-top: 20px;
+    }
+}
+
 /* Select design */
 
 #staff_id {

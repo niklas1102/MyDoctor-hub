@@ -244,18 +244,21 @@ def appointment_request(request, service_id=None, staff_member_id=None):
     }
     
     context = get_generic_context_with_extra(request, extra_context, admin=False)
-    # Override the base template to use our consistent layout
-    context['BASE_TEMPLATE'] = 'layouts/base.html'
-    return render(request, 'appointment/modern_booking.html', context=context)
+    return render(request, 'appointment/appointments.html', context=context)
 
 
 def appointment_request_submit(request):
-    """This view function handles the submission of the appointment request form.
+    """This view function handles the submission of the appointment request form and directly creates the appointment.
 
     :param request: The request instance.
     :return: The rendered HTML page.
     """
     if request.method == 'POST':
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, _("You must be logged in to book an appointment."))
+            return redirect('users:signin')
+        
         form = AppointmentRequestForm(request.POST)
         if form.is_valid():
             # Use form.cleaned_data to get the cleaned and validated data
@@ -268,17 +271,85 @@ def appointment_request_submit(request):
                 logger.info(
                         f"date_f {form.cleaned_data['date']} start_time {form.cleaned_data['start_time']} end_time "
                         f"{form.cleaned_data['end_time']} service {form.cleaned_data['service']} staff {staff_member}")
+                
+                # Create the appointment request
                 ar = form.save()
                 request.session[f'appointment_completed_{ar.id_request}'] = False
-                # Redirect the user to the account creation page
-                return redirect('appointment:appointment_client_information', appointment_request_id=ar.id,
-                                id_request=ar.id_request)
+                
+                # Get additional appointment data from the form
+                appointment_data = {
+                    'want_reminder': request.POST.get('want_reminder', 'false') == 'true',
+                    'additional_info': request.POST.get('additional_info', ''),
+                    'phone': '',  # User can update this in their profile later
+                    'address': ''  # User can update this in their profile later
+                }
+                
+                # Prepare client data using authenticated user information
+                client_data = {
+                    'email': request.user.email,
+                    'name': request.user.get_full_name() or request.user.username,
+                    'first_name': request.user.first_name or request.user.username,
+                    'last_name': request.user.last_name or ''
+                }
+                
+                # Create the appointment directly - no more personal info step needed
+                try:
+                    appointment = create_and_save_appointment(ar, client_data, appointment_data, request)
+                    
+                    # Set the session flag to indicate the appointment was submitted
+                    request.session[f'appointment_submitted_{ar.id_request}'] = True
+                    
+                    # Notify admin about the new appointment
+                    notify_admin_about_appointment(appointment, appointment.client.first_name)
+                    
+                    # Prepare appointment details for the email
+                    appt_details = {
+                        _('Service'): appointment.get_service_name(),
+                        _('Appointment Date'): appointment.get_appointment_date(),
+                        _('Appointment Time'): appointment.appointment_request.start_time,
+                        _('Duration'): appointment.get_service_duration()
+                    }
+                    
+                    # Add reason to appointment details if available
+                    if ar.reason:
+                        appt_details[_('Reason')] = ar.reason
+                    
+                    # Send thank you email to the client
+                    send_thank_you_email(ar=ar, user=request.user, email=request.user.email, 
+                                        appointment_details=appt_details, 
+                                        account_details=None, 
+                                        request=request)
+                    
+                    # Add success message
+                    messages.success(request, _("Your appointment has been successfully booked!"))
+                    
+                    # Redirect to confirmation page
+                    return redirect('appointment:my_appointments')
+                    
+                except Exception as e:
+                    logger.error(f"Error creating appointment: {e}", exc_info=True)
+                    messages.error(request, _("There was an error creating your appointment. Please try again."))
+                    # Redirect back to the appointment request page with service context
+                    return redirect('appointment:appointment_request', service_id=ar.service.id)
         else:
             # Handle the case if the form is not valid
             messages.error(request, _('There was an error in your submission. Please check the form and try again.'))
+            
+            # Debug: log form errors
+            logger.error(f"Form validation errors: {form.errors}")
+            
+            # Try to get service_id from form data to re-render page properly
+            service_id = None
+            if 'service' in request.POST:
+                try:
+                    service_id = int(request.POST['service'])
+                    # Redirect back to the appointment request page with service context
+                    return redirect('appointment:appointment_request', service_id=service_id)
+                except (ValueError, TypeError):
+                    pass
     else:
         form = AppointmentRequestForm()
-
+    
     context = get_generic_context_with_extra(request, {'form': form}, admin=False)
     return render(request, 'appointment/appointments.html', context=context)
 
@@ -440,6 +511,11 @@ def default_thank_you(request, appointment_id):
         _('Appointment Time'): appointment.appointment_request.start_time,
         _('Duration'): appointment.get_service_duration()
     }
+    
+    # Add reason to appointment details if available
+    if ar.reason:
+        appointment_details[_('Reason')] = ar.reason
+        
     account_details = {
         _('Email address'): email,
     }

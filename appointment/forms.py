@@ -25,9 +25,60 @@ class SlotForm(forms.Form):
 
 
 class AppointmentRequestForm(forms.ModelForm):
+    reason = forms.CharField(
+        max_length=500,
+        required=True,  # Make it required
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'Please describe the reason for your appointment...',
+            'class': 'form-control'
+        }),
+        help_text="Briefly describe the reason for your appointment or any specific concerns."
+    )
+    
     class Meta:
         model = AppointmentRequest
-        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member')
+        fields = ('date', 'start_time', 'end_time', 'service', 'staff_member', 'reason')
+
+
+class CombinedAppointmentForm(forms.Form):
+    """Combined form for appointment request and basic client information"""
+    # Appointment request fields
+    date = forms.DateField(widget=forms.HiddenInput())
+    start_time = forms.TimeField(widget=forms.HiddenInput())
+    end_time = forms.TimeField(widget=forms.HiddenInput())
+    service = forms.ModelChoiceField(queryset=Service.objects.all(), widget=forms.HiddenInput())
+    staff_member = forms.ModelChoiceField(queryset=StaffMember.objects.all())
+    reason = forms.CharField(
+        max_length=500,
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'Please describe the reason for your appointment...',
+            'class': 'form-control'
+        }),
+        help_text="Briefly describe the reason for your appointment or any specific concerns."
+    )
+    
+    # Basic client information fields (optional but helpful)
+    phone = SplitPhoneNumberField(required=False)
+    want_reminder = forms.BooleanField(required=False, initial=False)
+    address = forms.CharField(
+        max_length=255, 
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'City, State (optional)',
+        }),
+        help_text="Optional: City and state for location reference"
+    )
+    additional_info = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 2,
+            'class': 'form-control',
+            'placeholder': 'Any additional information or special requests (optional)'
+        })
+    )
 
 
 class ReschedulingForm(forms.ModelForm):

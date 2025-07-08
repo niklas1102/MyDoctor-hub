@@ -7,6 +7,7 @@
 
   {% include "includes/head.html" %}
   {% block extrastyle %}{% endblock extrastyle %}
+  {% block customCSS %}{% endblock customCSS %}
   <link rel="icon" href="{% static 'dist/img/MY-DOCTOR-fav.png' %}" type="image/x-icon">
   <link rel="stylesheet" href="{% static 'assets/style.css' %}">
 </head>
@@ -59,7 +60,7 @@
 
   {% include "includes/scripts.html" %}
   {% block extra_js %}{% endblock extra_js %}
-
+  {% block customJS %}{% endblock customJS %}
 </body>
 
 </html>

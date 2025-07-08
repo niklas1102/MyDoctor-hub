@@ -40,8 +40,8 @@ from appointment.utils.permissions import check_extensive_permissions, check_per
 ###############################################################
 
 
-@require_user_authenticated
-@require_staff_or_superuser
+# @require_user_authenticated
+# @require_staff_or_superuser
 def get_user_appointments(request, response_type='html'):
     appointments = fetch_user_appointments(request.user)
     appointments_json = convert_appointment_to_json(request, appointments)

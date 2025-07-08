@@ -319,7 +319,7 @@
         const isUserSuperUser = "{{ is_superuser }}" === "True";
     </script>
     <script>
-        {# Text for translation #}
+        // Text for translation
         const confirmDeletionTitleTxt = "{% trans 'Confirm Deletion' %}";
         const confirmDeletionTxt = "{% trans 'Are you sure you want to delete this appointment?' %}";
         const deleteBtnTxt = "{% trans 'Delete' %}";
@@ -330,9 +330,9 @@
         const errorTxt = "{% trans 'Error' %}";
         const updateApptErrorTitleTxt = "{% trans 'Error: Unable to delete appointment.' %}";
         const apptNotFoundTxt = "{% trans 'Appointment not found.' %}";
-        const notStaffMemberTxt = "{% trans "You're not a staff member. Can't perform this action !" %}";
-        const noServiceOfferedTxt = "{% trans "You don't offer any service. Add new service from your profile." %}";
-        const noStaffMemberTxt = "{% trans "No staff members found." %}";
+        const notStaffMemberTxt = "{% trans 'You\'re not a staff member. Can\'t perform this action !' %}";
+        const noServiceOfferedTxt = '{% trans "You don\'t offer any service. Add new service from your profile." %}';
+        const noStaffMemberTxt = "{% trans 'No staff members found.' %}";
     </script>
 
     <script src="{% static 'js/modal/error_modal.js' %}"></script>

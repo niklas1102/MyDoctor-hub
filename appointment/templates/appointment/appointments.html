@@ -3,10 +3,50 @@
 {% load i18n %}
 {% load static %}
 
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
 {% block extrastyle %}
+    <!-- Bootstrap CSS for appointment functionality -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,500,500i,600,600i,700,700i&display=swap"
+          rel="stylesheet">
+    
     <link rel="stylesheet" type="text/css" href="{% static 'css/appt-common.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/appointments.css' %}"/>
+    
     <style>
+        /* Preserve original appointment layout structure */
+        .djangoAppt_page-body {
+            display: flex;
+            flex-direction: row;
+            margin-top: 20px;
+        }
+
+        .djangoAppt_appointment-calendar {
+            flex: 3;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+        }
+
+        .djangoAppt_service-description {
+            flex: 1;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .djangoAppt_appointment-calendar,
+        .dark .djangoAppt_service-description {
+            background-color: #374151;
+        }
+
         /* Enhanced calendar visibility styles */
         .djangoAppt_calendar {
             min-height: 400px;
@@ -38,16 +78,6 @@
         
         .fc-day-today {
             background: #e3f2fd !important;
-        }
-        
-        .fc-day-past {
-            background: #f5f5f5 !important;
-            color: #999 !important;
-        }
-        
-        .fc-day-disabled {
-            background: #f0f0f0 !important;
-            color: #ccc !important;
         }
         
         .fc-button {
@@ -107,32 +137,40 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
         
-        /* Ensure calendar is visible */
-        .fc-view-harness-active {
-            min-height: 350px !important;
+        .djangoAppt_calendar-and-slot {
+            display: flex !important;
+            gap: 20px !important;
+            margin-top: 20px !important;
         }
         
-        .fc-daygrid-body {
-            width: 100% !important;
+        .djangoAppt_calendar {
+            flex: 3 !important;
         }
         
-        .fc-scrollgrid {
-            width: 100% !important;
+        .djangoAppt_slot {
+            flex: 2 !important;
+            margin-left: 0 !important;
+        }
+        
+        .error-message {
+            color: #ef4444 !important;
+            font-weight: 500 !important;
+            margin-bottom: 10px !important;
         }
         
         /* Dark mode styles */
         .dark .djangoAppt_calendar {
-            background: #374151 !important;
+            background: #4b5563 !important;
             color: white !important;
         }
         
         .dark .fc {
-            background: #374151 !important;
+            background: #4b5563 !important;
         }
         
         .dark .fc-daygrid-day {
-            background: #4b5563 !important;
-            border-color: #6b7280 !important;
+            background: #6b7280 !important;
+            border-color: #9ca3af !important;
         }
         
         .dark .fc-daygrid-day-number {
@@ -151,244 +189,242 @@
             color: white !important;
         }
         
-        /* Original layout styles */
-        .djangoAppt_main-container {
-            width: 100%;
+        .dark .djangoAppt_slot-list li {
+            background: #6b7280 !important;
+            color: white !important;
         }
         
-        .djangoAppt_body-container {
-            width: 100%;
+        .dark .djangoAppt_slot-list li:hover {
+            background: #4b5563 !important;
         }
         
-        .djangoAppt_page-body {
-            display: flex;
-            flex-wrap: wrap;
+        .dark .djangoAppt_slot-list li.selected {
+            background: #3b82f6 !important;
         }
         
-        .djangoAppt_calendar-and-slot {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-        }
-        
-        .djangoAppt_calendar {
-            flex: 2;
-            min-width: 60%;
-        }
-        
-        .djangoAppt_slot {
-            flex: 1;
-            min-width: 30%;
-            margin-left: 20px;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 1024px) {
+        /* Responsive adjustments - preserve original responsive behavior */
+        @media (max-width: 1199px) {
+            .djangoAppt_page-body {
+                flex-direction: column;
+            }
+
+            .djangoAppt_appointment-calendar {
+                flex: 1;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .djangoAppt_service-description {
+                flex: 1;
+            }
+
             .djangoAppt_calendar-and-slot {
-                flex-direction: column !important;
+                display: grid;
             }
-            
+
             .djangoAppt_slot {
-                margin-left: 0 !important;
-                margin-top: 20px !important;
-            }
-            
-            .djangoAppt_slot-list {
-                grid-template-columns: repeat(3, 1fr) !important;
+                margin-top: 40px;
+                margin-left: 0;
             }
         }
         
         @media (max-width: 768px) {
+            .djangoAppt_appointment-calendar,
+            .djangoAppt_service-description {
+                padding: 10px;
+            }
+            
             .djangoAppt_slot-list {
                 grid-template-columns: repeat(2, 1fr) !important;
             }
         }
+        
+        /* Ensure calendar is visible */
+        .fc-view-harness-active {
+            min-height: 350px !important;
+        }
+        
+        .fc-daygrid-body {
+            width: 100% !important;
+        }
+        
+        .fc-scrollgrid {
+            width: 100% !important;
+        }
     </style>
-{% endblock extrastyle %}
-
-{% block title %}
-    {{ page_title }}
 {% endblock %}
+
 {% block content %}
 <main>
     <div class="px-4 pt-6">
         <div class="mb-8">
+            <nav class="flex mb-4" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'appointment:booking_home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                            </svg>
+                            Booking Home
+                        </a>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ service.name }}</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white page-title">
-                {% if page_header %}{{ page_header }}{% else %}{{ service.name }}{% endif %} 
+                {% if page_header %}{{ page_header }}{% else %}{{ service.name }}{% endif %}
             </h1>
             <p class="text-gray-600 dark:text-gray-400 mt-2 page-description">
                 {% trans "Check out our availability and book the date and time that works for you" %}
             </p>
         </div>
 
-        <!-- Main container for all booking elements -->
-        <div class="djangoAppt_main-container">
-            <div class="djangoAppt_body-container">
-                <div class="djangoAppt_page-body flex flex-wrap">
-                    <!-- Left side: Calendar and slots -->
-                    <div class="djangoAppt_appointment-calendar w-full lg:w-8/12 pr-0 lg:pr-4 mb-6 lg:mb-0">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <div class="mb-6">
-                                <div class="djangoAppt_appointment-calendar-title-timezone">
-                                    <div class="djangoAppt_title text-xl font-semibold text-gray-800 dark:text-white">
-                                        {% trans "Select a date and time" %}
-                                    </div>
-                                    <div class="djangoAppt_timezone-details text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        {% trans "Timezone" %}:&nbsp;{{ timezoneTxt }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="djangoAppt_calendar-and-slot">
-                                <!-- Calendar -->
-                                <div class="djangoAppt_calendar" id="calendar"></div>
-                                
-                                <!-- Time Slots -->
-                                <div class="djangoAppt_slot">
-                                    <div class="djangoAppt_date_chosen text-lg font-medium text-gray-800 dark:text-white mb-4">
-                                        {{ date_chosen }}
-                                    </div>
-                                    <div class="slot-container">
-                                        <div class="error-message"></div>
-                                        <ul id="slot-list" class="djangoAppt_slot-list">
-                                            <!-- Slot list will be updated dynamically by the AJAX request -->
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% if rescheduled_date %}
-                                <div class="form-group mt-6">
-                                    <label for="reason_for_rescheduling" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        {% trans "Reason for rescheduling" %}:
-                                    </label>
-                                    <textarea name="reason_for_rescheduling" id="reason_for_rescheduling"
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" 
-                                            rows="3" required></textarea>
-                                </div>
-                            {% endif %}
+        <!-- Main Appointment Container -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <div class="djangoAppt_page-body">
+                <!-- Calendar Section -->
+                <div class="djangoAppt_appointment-calendar">
+                    <div class="djangoAppt_appointment-calendar-title-timezone">
+                        <div class="djangoAppt_title">
+                            {% trans "Select a date and time" %}
+                        </div>
+                        <div class="djangoAppt_timezone-details">
+                            {% trans "Timezone" %}:&nbsp;{{ timezoneTxt }}
                         </div>
                     </div>
-                    
-                    <!-- Right side: Doctor selection and service details -->
-                    <div class="djangoAppt_service-description w-full lg:w-4/12">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
-                                class="appointment-form space-y-4">
-                                {% csrf_token %}
-                                
-                                <!-- Staff Selection -->
-                                <div class="staff-members-list">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 djangoAppt_item-name" for="staff_id">
-                                        {{ label }}
-                                    </label>
-                                    <select name="staff_member" id="staff_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                        {% if not staff_member %}
-                                            <option value="none" selected>{% trans 'Please select a staff member' %}</option>
-                                        {% endif %}
-                                        {% for sf in all_staff_members %}
-                                            <option value="{{ sf.id }}"
-                                                    {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>
-                                                {{ sf.get_staff_member_name }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Reason for Appointment -->
-                                <div class="space-y-2">
-                                    <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {% trans "Reason for Appointment" %} *
-                                    </label>
-                                    <textarea name="reason" id="reason" rows="3" 
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" 
-                                            placeholder="{% trans 'Please describe the reason for your appointment...' %}" 
-                                            required></textarea>
-                                    <small class="text-gray-500 dark:text-gray-400">
-                                        {% trans "Briefly describe the reason for your appointment or any specific concerns." %}
-                                    </small>
-                                </div>
-
-                                <!-- Additional Information (Optional) -->
-                                <div class="space-y-2">
-                                    <label for="additional_info" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {% trans "Additional Information" %} <span class="text-gray-400">({% trans "Optional" %})</span>
-                                    </label>
-                                    <textarea name="additional_info" id="additional_info" rows="2" 
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" 
-                                            placeholder="{% trans 'Any additional information or special requests (optional)' %}"></textarea>
-                                </div>
-
-                                <!-- Want Reminder Checkbox -->
-                                <div class="flex items-center space-x-2">
-                                    <input type="checkbox" name="want_reminder" id="want_reminder" value="true" 
-                                        class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500">
-                                    <label for="want_reminder" class="text-sm text-gray-700 dark:text-gray-300">
-                                        {% trans "I want to receive a reminder before this appointment" %}
-                                    </label>
-                                </div>
-
-                                <!-- Service Details -->
-                                <div class="border-t pt-4">
-                                    <h3 class="text-lg font-medium text-gray-800 dark:text-white mb-4">
-                                        {% trans "Service Details" %}
-                                    </h3>
-                                    <div class="djangoAppt_service-description-content space-y-3">
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Service</span>
-                                            <p class="text-lg font-medium text-gray-900 dark:text-white djangoAppt_item-name">{{ service.name }}</p>
-                                        </div>
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Date & Time</span>
-                                            <p id="service-datetime-chosen" class="text-lg text-gray-900 dark:text-white service-datetime-chosen">{{ date_chosen }}</p>
-                                        </div>
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Duration</span>
-                                            <p class="text-lg text-gray-900 dark:text-white">{{ service.get_duration }}</p>
-                                        </div>
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Price</span>
-                                            <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ service.get_price_text }}</p>
-                                        </div>
-                                        
-                                        <!-- Hidden fields for form submission -->
-                                        <input type="hidden" name="date" id="selected_date" value="{{ today|date:'Y-m-d' }}">
-                                        <input type="hidden" name="start_time" id="selected_start_time" value="">
-                                        <input type="hidden" name="end_time" id="selected_end_time" value="">
-                                        <input type="hidden" name="service" value="{{ service.id }}">
-                                        
-                                        <div class="pt-4">
-                                            <button type="submit"
-                                                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors btn btn-primary btn-submit-appointment"
-                                                    disabled>
-                                                {% trans 'Book Appointment' %}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+                    <hr class="djangoAppt_second-part">
+                    <div class="djangoAppt_calendar-and-slot">
+                        <div class="djangoAppt_calendar" id="calendar">
+                        </div>
+                        <div class="djangoAppt_slot">
+                            <div class="djangoAppt_date_chosen">{{ date_chosen }}</div>
+                            <div class="slot-container">
+                                <div class="error-message"></div>
+                                <ul id="slot-list" class="djangoAppt_slot-list">
+                                    <!-- Slot list will be updated dynamically by the AJAX request -->
+                                </ul>
+                            </div>
                         </div>
                     </div>
+                    {% if rescheduled_date %}
+                        <div class="form-group" style="margin-top: 10px">
+                            <label for="reason_for_rescheduling">{% trans "Reason for rescheduling" %}:</label>
+                            <textarea name="reason_for_rescheduling" id="reason_for_rescheduling"
+                                      class="form-control" rows="1" required></textarea>
+                        </div>
+                    {% endif %}
                 </div>
                 
-                <!-- Messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %} mt-4 p-4 rounded-lg border"
-                            role="alert">
-                            {{ message }}
+                <!-- Service Details Section (Right Side) -->
+                <div class="djangoAppt_service-description">
+                    <form method="post" action="{% url 'appointment:appointment_request_submit' %}"
+                          class="appointment-form">
+                        {% csrf_token %}
+                        
+                        <!-- Staff Selection -->
+                        <div class="staff-members-list">
+                            <label class="djangoAppt_item-name" for="staff_id">{{ label }}</label>
+                            <select name="staff_member" id="staff_id">
+                                {% if not staff_member %}
+                                    <option value="none" selected>{% trans 'Please select a staff member' %}</option>
+                                {% endif %}
+                                {% for sf in all_staff_members %}
+                                    <option value="{{ sf.id }}"
+                                            {% if staff_member and staff_member.id == sf.id %}selected{% endif %}>{{ sf.get_staff_member_name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                    {% endfor %}
-                {% endif %}
+
+                        <!-- Reason for Appointment -->
+                        <div class="form-group mt-4">
+                            <label for="reason" class="djangoAppt_item-name">{% trans "Reason for Appointment" %} *</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="3" 
+                                     placeholder="{% trans 'Please describe the reason for your appointment...' %}" 
+                                     required></textarea>
+                            <small class="text-muted">{% trans "Briefly describe the reason for your appointment or any specific concerns." %}</small>
+                        </div>
+
+                        <!-- Optional Additional Information -->
+                        <div class="form-group mt-3">
+                            <label for="additional_info" class="djangoAppt_item-name">{% trans "Additional Information" %} {% trans "(Optional)" %}</label>
+                            <textarea name="additional_info" id="additional_info" class="form-control" rows="2" 
+                                     placeholder="{% trans 'Any additional information or special requests (optional)' %}"></textarea>
+                        </div>
+
+                        <!-- Want Reminder Checkbox -->
+                        <div class="form-group mt-3">
+                            <label class="form-check-label">
+                                <input type="checkbox" name="want_reminder" value="true" class="form-check-input">
+                                {% trans "I want to receive a reminder before this appointment" %}
+                            </label>
+                        </div>
+
+                        <div>{% trans "Service Details" %}</div>
+                        <hr class="djangoAppt_second-part">
+                        <div class="djangoAppt_service-description-content">
+                            <p class="djangoAppt_item-name">{{ service.name }}</p>
+                            <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
+                            <p>{{ service.get_duration }}</p>
+                            <p>{{ service.get_price_text }}</p>
+                            
+                            <!-- Hidden fields for form submission -->
+                            <input type="hidden" name="date" id="selected_date" value="{{ today|date:'Y-m-d' }}">
+                            <input type="hidden" name="start_time" id="selected_start_time" value="">
+                            <input type="hidden" name="end_time" id="selected_end_time" value="">
+                            <input type="hidden" name="service" value="{{ service.id }}">
+                            
+                            <button type="submit"
+                                    class="btn btn-primary btn-submit-appointment"
+                                    disabled>{% trans 'Book Appointment' %}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+    
+        {% if messages %}
+            <div class="mt-6">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}"
+                         role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 </main>
 {% endblock %}
 
 {% block extra_js %}
-    <!-- Load required dependencies in correct order -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- jQuery (needed for appointment functionality) - Load before main scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.min.js"
+            integrity="sha512-WW8/jxkELe2CAiE4LvQfwm1rajOS8PHasCCx+knHG0gBHt8EXxS6T6tJRTGuDQVnluuAvMxWF4j8SNFDKceLFg=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Ion Icons (for appointment functionality) -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    
+    <!-- Appointment scripts initialization -->
+    <script>
+        // Ensure jQuery is available in global scope for appointment scripts
+        window.jQuery = window.$ = jQuery;
+        
+        // Namespace for appointment functionality to prevent conflicts
+        window.AppointmentApp = window.AppointmentApp || {};
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"
             integrity="sha512-3CuraBvy05nIgcoXjVN33mACRyI89ydVHg7y/HMN9wcTVbHeur0SeBzweSd/rxySapO7Tmfu68+JlKkLTnDFNg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -398,89 +434,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"
             integrity="sha512-JCQkxdym6GmQ+AFVioDUq8dWaWN6tbKRhRyHvYZPupQ6DxpXzkW106FXS1ORgo/m3gxtt5lHRMqSdm2OfPajtg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    
-    <!-- Appointment configuration and localization -->
     <script>
-        // Define global variables BEFORE loading appointments.js (using var instead of const for compatibility)
-        var timezone = "{{ timezoneTxt }}";
-        var locale = "{{ locale }}";
-        var availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
-        var requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
-        var getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
-        var serviceId = "{{ service.id }}";
-        var serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
-        var rescheduledDate = "{{ rescheduled_date }}";
-        var appointmentRequestId = "{{ ar_id_request }}";
-        var appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
-        var appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
-        
-        // Translation strings
-        var requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
-        var noStaffMemberSelectedTxt = "{% trans 'No staff member selected.' %}";
-        var selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
-        var dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
-        var selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";
-        
-        console.log('Global variables defined');
-        console.log('Service ID:', serviceId);
-        console.log('Timezone:', timezone);
+        const timezone = "{{ timezoneTxt }}";
+        const locale = "{{ locale }}";
+        const availableSlotsAjaxURL = "{% url 'appointment:available_slots_ajax' %}";
+        const requestNextAvailableSlotURLTemplate = "{% url 'appointment:request_next_available_slot' service_id=0 %}";
+        const getNonWorkingDaysURL = "{% url 'appointment:get_non_working_days_ajax' %}";
+        const serviceId = "{{ service.id }}";
+        const serviceDuration = parseInt("{{ service.duration.total_seconds }}") / 60;
+        const rescheduledDate = "{{ rescheduled_date }}";
+        const appointmentRequestId = "{{ ar_id_request }}";
+        const appointmentRequestSubmitURL = "{% url 'appointment:appointment_request_submit' %}";
+        const appointmentRescheduleURL = "{% url 'appointment:reschedule_appointment_submit' %}";
     </script>
-    
-    <!-- Load the appointment scripts after variables are defined -->
-    <script src="{% static 'js/js-utils.js' %}"></script>
+    <script>
+        const requestNonAvailableSlotBtnTxt = "{% trans 'Request next available slot' %}";
+        const noStaffMemberSelectedTxt = "{% trans 'No staff member selected.' %}";
+        const selectTimeSlotWarningTxt = "{% trans 'Please select a time slot before submitting the appointment request.' %}";
+        const dateInPastErrorTxt = "{% trans 'Date is in the past.' %}";
+        const selectDateAndTimeAlertTxt = "{% trans 'Please select a date and time' %}";
+    </script>
     <script src="{% static 'js/appointments.js' %}"></script>
-    
-    <script>
-        // Additional calendar setup after all scripts load
-        $(document).ready(function() {
-            console.log('Document ready, checking calendar...');
-            
-            const calendarEl = document.getElementById('calendar');
-            if (calendarEl) {
-                console.log('Calendar element exists');
-                
-                // Ensure the calendar element is visible and styled
-                calendarEl.style.minHeight = '400px';
-                calendarEl.style.width = '100%';
-                calendarEl.style.display = 'block';
-                calendarEl.style.visibility = 'visible';
-                
-                // Check if calendar was initialized
-                setTimeout(function() {
-                    if (typeof calendar !== 'undefined' && calendar) {
-                        console.log('Calendar object exists, rendering...');
-                        try {
-                            calendar.render();
-                            console.log('Calendar rendered successfully');
-                        } catch (e) {
-                            console.error('Error rendering calendar:', e);
-                        }
-                    } else {
-                        console.error('Calendar object not found');
-                        
-                        // Fallback: create a simple calendar if the main one fails
-                        if (typeof FullCalendar !== 'undefined') {
-                            console.log('Creating fallback calendar...');
-                            var fallbackCalendar = new FullCalendar.Calendar(calendarEl, {
-                                initialView: 'dayGridMonth',
-                                height: 'auto',
-                                headerToolbar: {
-                                    left: 'title',
-                                    right: 'prev,today,next'
-                                }
-                            });
-                            fallbackCalendar.render();
-                            console.log('Fallback calendar created');
-                        }
-                    }
-                }, 500);
-            } else {
-                console.error('Calendar element not found');
-            }
-        });
-    </script>
-{% endblock %}
-
-{% block description %}
-    {{ page_description }}
+    <script src="{% static 'js/js-utils.js' %}"></script>
 {% endblock %}

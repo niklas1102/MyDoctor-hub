@@ -1,6 +1,66 @@
-.djangoAppt_main-container {
-    margin: 20px auto;
-    max-width: 1200px;
+.appointment-content {
+    padding: 0;
+    margin: 0;
+}
+
+.appointment-content .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.appointment-content .container-fluid {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Ensure appointment content doesn't interfere with main layout */
+.appointment-content {
+    padding: 0;
+    margin: 0;
+}
+
+/* Override any potential conflicts with main platform button styles */
+.appointment-content .btn {
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.appointment-content .btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.appointment-content .btn-primary:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.appointment-content .btn-primary:disabled {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    opacity: 0.65;
+}
+
+/* Ensure proper spacing within main content area */
+.appointment-content .djangoAppt_main-container {
+    margin: 0;
+    max-width: 100%;
     padding: 20px;
     background-color: rgba(248, 249, 250, 0.4);
     border-radius: 5px;
@@ -8,8 +68,8 @@
 }
 
 .djangoAppt_body-container {
-    margin: 0 auto;
-    max-width: 1120px;
+    margin: 0;
+    max-width: 100%;
     padding: 0 15px;
 }
 
@@ -221,33 +281,6 @@ a {
 
     .djangoAppt_slot {
         margin-left: 20px;
-    }
-}
-
-/* Integration with main layout */
-@media (min-width: 1024px) {
-    .djangoAppt_main-container {
-        margin: 10px auto;
-        max-width: none;
-        padding: 15px;
-    }
-}
-
-/* Ensure calendar fits well in the main layout */
-.djangoAppt_page-body {
-    display: flex;
-    flex-direction: row;
-    margin-top: 30px;
-}
-
-@media (max-width: 1200px) {
-    .djangoAppt_page-body {
-        flex-direction: column;
-    }
-    
-    .djangoAppt_service-description {
-        margin-left: 0;
-        margin-top: 20px;
     }
 }
 
@@ -476,4 +509,146 @@ a {
 
 .selected-cell {
     background-color: #aaddff; /* or any color you prefer */
+}
+
+/* Bootstrap scoping for appointment content to prevent conflicts with main platform */
+.appointment-content .btn {
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.appointment-content .btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.appointment-content .btn-primary:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.appointment-content .btn-primary:disabled {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    opacity: 0.65;
+}
+
+.appointment-content .form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.appointment-content .form-control:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Enhanced form compatibility with main platform */
+.appointment-content .form-control,
+input[type="text"], input[type="email"], input[type="tel"], 
+textarea, select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    color: #374151;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.dark .appointment-content .form-control,
+.dark input[type="text"], .dark input[type="email"], .dark input[type="tel"], 
+.dark textarea, .dark select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.appointment-content .form-control:focus,
+input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, 
+textarea:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.appointment-content .btn-submit-appointment {
+    width: 100%;
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.appointment-content .btn-submit-appointment:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.appointment-content .btn-submit-appointment:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Ensure calendar container has proper spacing in main layout */
+.djangoAppt_calendar-and-slot {
+    margin-top: 1rem !important;
+}
+
+/* Staff member dropdown styling */
+#staff_id {
+    background-color: #f9fafb !important;
+    border: 1px solid #d1d5db !important;
+}
+
+.dark #staff_id {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #e5e7eb !important;
+}
+
+/* Responsive form improvements */
+@media (max-width: 768px) {
+    .djangoAppt_calendar-and-slot {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .djangoAppt_slot {
+        margin-left: 0 !important;
+    }
 }

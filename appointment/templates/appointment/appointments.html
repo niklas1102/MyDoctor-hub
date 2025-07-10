@@ -27,6 +27,7 @@
             border-radius: 8px;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             margin-right: 20px;
+            margin-bottom: 40px;
         }
 
         .djangoAppt_service-description {
@@ -331,7 +332,7 @@
 
         /* Enhanced calendar visibility styles */
         .djangoAppt_calendar {
-            min-height: 400px;
+          
             width: 100%;
             background: white;
             border-radius: 8px;
@@ -594,7 +595,9 @@
                     </div>
                 </div>
                 <hr class="djangoAppt_second-part">
-                <div class="djangoAppt_calendar-and-slot">
+                <div class="flex flex-col">
+                    <div class="top mb-10">
+                        <div class="djangoAppt_calendar-and-slot">
                     <div class="djangoAppt_calendar" id="calendar">
                     </div>
                     <div class="djangoAppt_slot">
@@ -607,6 +610,9 @@
                         </div>
                     </div>
                 </div>
+                
+                
+                    
                 {% if rescheduled_date %}
                     <div class="form-group" style="margin-top: 10px">
                         <label for="reason_for_rescheduling">{% trans "Reason for rescheduling" %}:</label>
@@ -614,6 +620,34 @@
                                   class="form-control" rows="1" required></textarea>
                     </div>
                 {% endif %}
+                    </div>
+                 <br>
+                 <br>   
+                 <br>
+  
+                <div class="bottom">
+                    <div>{% trans "Service Details" %}</div>
+                    <hr class="djangoAppt_second-part">
+                    <div class="djangoAppt_service-description-content">
+                        <p class="djangoAppt_item-name">{{ service.name }}</p>
+                        <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
+                        <p>{{ service.get_duration }}</p>
+                        <p>{{ service.get_price_text }}</p>
+                        
+                        <!-- Hidden fields for form submission -->
+                        <input type="hidden" name="date" id="selected_date" value="{{ today|date:'Y-m-d' }}">
+                        <input type="hidden" name="start_time" id="selected_start_time" value="">
+                        <input type="hidden" name="end_time" id="selected_end_time" value="">
+                        <input type="hidden" name="service" value="{{ service.id }}">
+                        
+                        <button type="submit"
+                                class="btn btn-primary btn-submit-appointment"
+                                disabled>{% trans 'Book Appointment' %}
+                        </button>
+                    </div>
+                </div>
+                </div>
+                
             </div>
             
             <!-- Service Details Section (Right Side) -->
@@ -649,7 +683,7 @@
                     <div class="form-group mt-3">
                         <label for="additional_info" class="djangoAppt_item-name">{% trans "Additional Information" %} {% trans "(Optional)" %}</label>
                         <textarea name="additional_info" id="additional_info" class="form-control" rows="2" 
-                                 placeholder="{% trans 'Sdditional information...' %}"></textarea>
+                                 placeholder="{% trans 'Additional information...' %}"></textarea>
                     </div>
 
                     <!-- Want Reminder Checkbox -->
@@ -658,25 +692,6 @@
                             <input type="checkbox" name="want_reminder" value="true" class="form-check-input">
                             {% trans "I want to receive a reminder before this appointment" %}
                         </label>
-                    </div>
-
-                    <div>{% trans "Service Details" %}</div>
-                    <hr class="djangoAppt_second-part">
-                    <div class="djangoAppt_service-description-content">
-                        <p class="djangoAppt_item-name">{{ service.name }}</p>
-                        <p id="service-datetime-chosen" class="service-datetime-chosen">{{ date_chosen }}</p>
-                        <p>{{ service.get_duration }}</p>
-                        <p>{{ service.get_price_text }}</p>
-                        
-                        <!-- Hidden fields for form submission -->
-                        <input type="hidden" name="date" id="selected_date" value="{{ today|date:'Y-m-d' }}">
-                        <input type="hidden" name="start_time" id="selected_start_time" value="">
-                        <input type="hidden" name="end_time" id="selected_end_time" value="">
-                        <input type="hidden" name="service" value="{{ service.id }}">
-                        
-                        <button type="submit"
-                                class="btn btn-primary btn-submit-appointment"
-                                disabled>{% trans 'Book Appointment' %}</button>
                     </div>
                 </form>
             </div>
